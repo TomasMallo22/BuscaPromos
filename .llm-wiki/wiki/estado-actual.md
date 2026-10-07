@@ -51,11 +51,19 @@ SDD, la configuracion del monorepo y la documentacion base. Todavia no hay codig
 - SMTP de Resend en Supabase Auth (sin esto el login se rompe con 3 usuarios: ver `bloqueos.md`).
 - `ci.yml` verde.
 
+## Spec 001 — especificada y lista para ejecutar
+
+`specs/001-rappi-end-to-end/` tiene los 5 archivos completos: propuesta con las decisiones del
+dueño (registro por invitacion, filtros de dos niveles), 19 escenarios, diseño con el arbol de
+archivos y las migraciones, 26 tareas en orden, y la verificacion escenario por escenario.
+
+**Se puede ejecutar desde una sesion local**: ver `docs/12-trabajar-en-local.md`.
+
 ## Lo que sigue
 
-Spec 001 — Rappi end-to-end. El orden importa porque la red esta bloqueada (ver `bloqueos.md`):
-se puede hacer ~65% sin red, empezando por `packages/core` y los casos sinteticos de
-`fixtures/rappi/casos/`.
+Ejecutar la spec 001, empezando por las tareas 1 a 7: el motor de deteccion en
+`packages/core`, con los tests primero. Es el activo intelectual, no depende de la base ni de
+la red, y sus valores esperados ya estan validados contra el Python original.
 
 ## Esperando al dueño
 

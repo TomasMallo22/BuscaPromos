@@ -28,6 +28,7 @@ Ver [`.llm-wiki/wiki/estado-actual.md`](.llm-wiki/wiki/estado-actual.md).
 | las decisiones y su porque | [`docs/adr/`](docs/adr/) |
 | que sigue | [`docs/08-roadmap.md`](docs/08-roadmap.md) |
 | trabajar en el repo | [`CLAUDE.md`](CLAUDE.md) y [`specs/README.md`](specs/README.md) |
+| **correrlo en tu PC** | [`docs/12-trabajar-en-local.md`](docs/12-trabajar-en-local.md) |
 
 ## Estructura
 

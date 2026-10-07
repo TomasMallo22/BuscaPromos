@@ -52,7 +52,7 @@ de alguien.**
 | Spec | Estado | Entregable |
 |---|---|---|
 | [`000-andamiaje`](000-andamiaje/) | en curso | el dueño se loguea desde el celular y ve una pantalla vacia |
-| [`001-rappi-end-to-end`](001-rappi-end-to-end/) | sin empezar | recibe un Telegram con una promo real y la ve en la web |
+| [`001-rappi-end-to-end`](001-rappi-end-to-end/) | **especificada**, lista para ejecutar | recibe un Telegram con una promo real y la ve en la web |
 
 El roadmap completo esta en [`../docs/08-roadmap.md`](../docs/08-roadmap.md).
 
