@@ -76,3 +76,23 @@ complejidad.
 Dura 7 dias. Re-autenticar en cada corrida serian cientos de pares passport+guest por mes desde
 la misma IP de Actions: patron detectable. Se cachea en una tabla `credenciales_proveedor`
 cerrada a `service_role`, y se renueva a los 6 dias o ante un 401.
+
+## Supabase Auth
+
+Registro **solo por invitacion** (spec 001, E15). Lo que hay configurado en el panel, y por que:
+
+| Donde | Que | Por que |
+|---|---|---|
+| Authentication → Sign In / Providers | "Allow new users to sign up" **apagado** | es la barrera real. El `shouldCreateUser: false` de la web solo hace que el mensaje sea claro; con la clave publica cualquiera podria pedir el alta directo a la API |
+| Authentication → Emails → SMTP | Resend, remitente en `httpsolutions.dev` | el SMTP interno da ~2 mails por hora (bloqueo B2) |
+| Authentication → URL Configuration | Site URL = la de Vercel, **sin barra final**. Redirect URLs: `https://<vercel>/**` y `http://localhost:3000/**` | el magic link vuelve a la URL desde la que se pidio, si esta en la lista |
+| Authentication → Emails → Magic Link | [`supabase/plantillas/magic-link.html`](../supabase/plantillas/magic-link.html) | link con `token_hash`: se pide en la compu y se abre en el celular |
+| Authentication → Emails → Invite user | [`supabase/plantillas/invitacion.html`](../supabase/plantillas/invitacion.html) | idem, para la invitacion |
+
+**Invitar a alguien** (hasta que exista la tabla `invitaciones` de la migracion 0010):
+Authentication → Users → Invite user → su mail. Le llega la invitacion; despues entra siempre
+con magic link.
+
+**Si un link "vence" apenas llega:** algunos clientes de correo corporativos abren los links
+para escanearlos y lo consumen. Con Gmail no pasa. Si pasa, la salida es una pagina intermedia
+con un boton "Entrar" que haga el `verifyOtp` en el click y no en el GET.

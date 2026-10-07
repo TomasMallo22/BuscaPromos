@@ -42,13 +42,23 @@ SDD, la configuracion del monorepo y la documentacion base. Todavia no hay codig
   sub-pasillos con `product_count`, y productos con los 10 campos clave, ninguno faltante.
   Detalle con numeros en `bitacora-api.md`. Rappi pasa de MEDIO a **FACIL** y **no necesita
   Playwright**.
+- **Branch `main` creada** (2026-10-07) y es la base de los PRs. Antes el unico branch era
+  `claude/festive-heisenberg-xvs0r9`.
+- **`apps/web` existe** (2026-10-07): Next 15 mobile-first con `/login` por invitacion (magic
+  link con `token_hash`, que se puede abrir en otro dispositivo), `/auth/confirm`, `/feed` con
+  los dos primeros estados vacios de `docs/14`, y `/ajustes` de solo lectura. Probado contra el
+  Supabase real: un mail sin invitacion rebota con mensaje claro y **no** crea usuario (E15 de
+  la 001). El login completo, con mail de verdad, **todavia no se probo**: espera el SMTP y
+  Vercel. Las plantillas de mail estan en `supabase/plantillas/`.
+- **Dominio `httpsolutions.dev` verificado en Resend** (2026-10-07, region São Paulo, DNS en
+  Cloudflare).
 
 ## Falta (spec 000)
 
 - Tests de RLS **con dos JWT reales de dos usuarios distintos** (nunca `service_role`).
-- Next 15 mobile-first: `/login` con magic link, `/feed` vacio, `/ajustes`.
-- Next 15 mobile-first en Vercel: `/login` con magic link, `/feed` vacio, `/ajustes`.
-- SMTP de Resend en Supabase Auth (sin esto el login se rompe con 3 usuarios: ver `bloqueos.md`).
+- Cargar el SMTP de Resend en Supabase Auth y apagar el registro abierto (dueño).
+- Deploy a Vercel y probar el login desde el celular (dueño). Paso a paso en
+  `docs/07-operacion.md`, seccion "Supabase Auth".
 - `ci.yml` verde.
 
 ## Spec 001 — especificada y lista para ejecutar
@@ -69,8 +79,8 @@ la red, y sus valores esperados ya estan validados contra el Python original.
 
 | Que | Para que | Estado |
 |---|---|---|
-| Subir el nivel de acceso de red del entorno | Poder iterar contra la API real | pendiente |
-| Pasar el repo de privado a publico | Minutos de Actions ilimitados | pendiente |
+| SMTP de Resend en Supabase + "Allow new users to sign up" apagado | Que el magic link llegue y que nadie se registre solo | pendiente |
+| Proyecto en Vercel (Root Directory `apps/web`) + URLs y plantillas en Supabase Auth | La primera prueba desde el celular | pendiente |
 | Decidir licencia del repo al ser publico | Legal | pendiente |
 | Avisarle a Ivo que se porta su logica | Cortesia | pendiente |
 | Cuantas direcciones realistas | Dimensionar `tiendas` y el presupuesto de minutos | pendiente |

@@ -20,7 +20,8 @@ Con esto el flujo completo de Rappi se verifico en vivo: ver `bitacora-api.md`.
 
 ## B2 — SMTP de Supabase Auth limitado
 
-**Estado: abierto, con solucion conocida.** El SMTP interno de Supabase esta limitado a ~2
+**Estado: abierto, a un paso.** Dominio `httpsolutions.dev` verificado en Resend
+(2026-10-07); falta cargar el SMTP en el panel de Supabase. El SMTP interno de Supabase esta limitado a ~2
 emails por hora en el plan free. Con 6-10 usuarios haciendo magic link se agota el primer dia.
 
 **Solucion:** configurar SMTP propio con Resend (free tier 3.000 mails/mes) desde la spec 000.

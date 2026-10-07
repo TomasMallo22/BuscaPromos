@@ -1,0 +1,20 @@
+<!--
+  Supabase → Authentication → Emails → Invite user. Asunto: "Te invitaron a BuscaPromos".
+  La invitacion se manda desde el panel (Authentication → Users → Invite user), que no pasa
+  una URL de redireccion: por eso aca va {{ .SiteURL }} y no {{ .RedirectTo }}.
+  La Site URL tiene que estar cargada SIN barra final.
+-->
+<h2>Te invitaron a BuscaPromos</h2>
+<p>
+  BuscaPromos avisa cuando algo en Rappi está de verdad más barato que de costumbre, según su
+  historial de precios y no según el precio tachado.
+</p>
+<p>
+  <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=invite"
+     style="display:inline-block;padding:12px 20px;background:#2848c8;color:#ffffff;border-radius:8px;text-decoration:none;font-weight:600">
+    Aceptar la invitación
+  </a>
+</p>
+<p style="color:#5a5a55;font-size:14px">
+  El link sirve una sola vez. Después entrás siempre con tu mail, sin contraseña.
+</p>

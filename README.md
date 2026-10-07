@@ -12,7 +12,8 @@ como el tachado del retailer.
 
 ## Estado
 
-**Spec 000 (andamiaje) en curso.** Todavia no hay nada que corra.
+**Spec 000 (andamiaje) casi cerrada**: la web con login por invitacion existe; falta el
+deploy a Vercel. **Spec 001 (Rappi end-to-end) en curso.**
 Ver [`.llm-wiki/wiki/estado-actual.md`](.llm-wiki/wiki/estado-actual.md).
 
 ## Por donde empezar
@@ -52,7 +53,7 @@ supabase/          migraciones y seed
 
 ```bash
 npm install
-cp .env.example .env.local     # completar
+cp .env.example apps/web/.env.local   # completar (Next lo lee de apps/web)
 npm run db:arrancar            # Postgres local en Docker
 npm run db:reset               # migraciones + seed
 npm run verificar              # typecheck + lint + test + reglas + fixtures
