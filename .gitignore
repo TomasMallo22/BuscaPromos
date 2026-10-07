@@ -1,0 +1,45 @@
+# deps
+node_modules/
+.pnp/
+.yarn/
+
+# next / build
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+next-env.d.ts
+
+# env — el repo es publico, nada de secretos
+.env
+.env.local
+.env*.local
+!.env.example
+
+# supabase
+supabase/.branches/
+supabase/.temp/
+
+# capturas crudas del probe: NUNCA se commitean sin redactar.
+# Lo redactado y verificado vive en fixtures/, que si se versiona.
+probes/
+
+# claude local
+.claude/settings.local.json
+
+# dumps de la base
+*.dump
+*.sql.gz
+
+# sistema
+.DS_Store
+Thumbs.db
+*.log
+
+# ---------------------------------------------------------------------
+# docs/, specs/, .llm-wiki/ y .claude/ SI se versionan.
+# Decision explicita, al revés que en CirculoAjedrezBeccar: por construccion
+# no contienen datos personales (todo lo sensible vive en Supabase con RLS) y
+# son el estado del proyecto. Ver ADR 0003 y docs/10-seguridad-rls.md.
+# ---------------------------------------------------------------------
