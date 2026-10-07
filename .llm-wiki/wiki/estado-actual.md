@@ -37,6 +37,11 @@ SDD, la configuracion del monorepo y la documentacion base. Todavia no hay codig
   existen y **todas tienen RLS habilitado**; `get_advisors` de seguridad da **cero hallazgos**.
 - `packages/db/src/tipos.ts` generado desde el esquema real.
 - **El repo ya es publico**: Actions con minutos ilimitados, cadencia del cron libre.
+- **La red del contenedor esta abierta y el flujo de 4 pasos de Rappi se verifico en vivo**:
+  auth de invitado, resolucion de tienda por lat/lng (store 266872 en el Obelisco), 30 pasillos,
+  sub-pasillos con `product_count`, y productos con los 10 campos clave, ninguno faltante.
+  Detalle con numeros en `bitacora-api.md`. Rappi pasa de MEDIO a **FACIL** y **no necesita
+  Playwright**.
 
 ## Falta (spec 000)
 

@@ -1,8 +1,9 @@
 # Fuentes: factibilidad por proveedor
 
-_Investigado el 2026-10-07. Ninguna verificacion es en vivo: la red del contenedor esta
-cerrada (ver `bloqueos.md`). Todo lo de abajo sale de documentacion oficial y de leer codigo
-de scrapers open source que estuvieron corriendo contra estos endpoints en sep-oct 2026._
+_Investigado el 2026-10-07. **Rappi esta verificado en vivo**: el flujo de 4 pasos completo
+corrio contra la API real ese mismo dia (ver `bitacora-api.md`). El resto sale de documentacion
+oficial y de leer codigo de scrapers open source que estuvieron corriendo contra estos endpoints
+en sep-oct 2026, y sigue sin confirmarse._
 
 **Cada afirmacion de esta tabla necesita confirmarse con el `probe` antes de construir sobre
 ella.** La columna "verificado en vivo" dice si eso ya paso.
@@ -30,8 +31,13 @@ ella.** La columna "verificado en vivo" dice si eso ya paso.
    `{limit, offset, state: {lat, lng, store_type, parent_store_type, ...}, stores: [id], context}`,
    con `context` en `aisles_tree` | `sub_aisles` | `aisle_detail`. Paginas de 50 por `offset`.
 
-Anti-bot laxo: **no bloquea IPs de datacenter de GitHub Actions** (reportado por terceros con
-un scraper corriendo en CI). Detalle completo en `docs/04-contrato-proveedores.md`.
+Anti-bot laxo: **no bloquea IPs de datacenter** — verificado de primera mano el 2026-10-07
+desde el contenedor, sin captcha ni 403. Detalle completo en `docs/04-contrato-proveedores.md`,
+y la corrida de verificacion con sus numeros en `bitacora-api.md`.
+
+Veredicto corregido a **FACIL**: no hace falta Playwright. La API de invitado de
+`services.rappi.com.ar` da el catalogo completo paginado; lo del storefront con Next.js y
+device-id era una via alternativa que no necesitamos.
 
 ## VTEX — la spec 004
 

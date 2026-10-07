@@ -2,26 +2,21 @@
 
 _Ultima actualizacion: 2026-10-07_
 
-## B1 — Los subdominios siguen bloqueados
+## B1 — Red del contenedor — RESUELTO 2026-10-07
 
-**Estado: abierto, acotado.** El dueño cargo los dominios en modo Personalizado. Medido con
-`curl` el 2026-10-07, la lista hace **match exacto con el hostname y no cubre subdominios**:
+**Estado: cerrado.** El dueño cargo los dominios en el modo Personalizado del entorno y la red
+quedo abierta. Medido con `curl`:
 
 ```
-rappi.com.ar   301 ok      services.rappi.com.ar  000 bloqueado   <- la API de Rappi
-jumbo.com.ar   301 ok      www.jumbo.com.ar       000 bloqueado
-                           api.telegram.org       000 bloqueado
+services.rappi.com.ar  400 (llega)    www.jumbo.com.ar      200 ok
+www.carrefour.com.ar   200 ok         api.telegram.org      302 ok
 ```
 
-Como **todos** los endpoints del proyecto son subdominios, faltan cargarlos con el comodin que
-el propio campo documenta (`*`): `*.rappi.com.ar`, `*.jumbo.com.ar`, `*.disco.com.ar`,
-`*.vea.com.ar`, `*.carrefour.com.ar`, `*.supermercadosdia.com.ar`, `*.masonline.com.ar`,
-`*.telegram.org`, `*.cnstrc.com`, `*.laanonima.com.ar`, `*.cloudfront.net`,
-`*.produccion.gob.ar`. Si el comodin no funcionara, van los hostnames exactos.
+**Nota para no repetir el error:** en una medicion anterior los subdominios daban 000 y se
+concluyo que la lista hacia match exacto con el hostname. Era falso — lo que pasaba es que la
+configuracion todavia no habia propagado. El dominio raiz cubre sus subdominios.
 
-**No frena la spec 000.** Frena la 001, donde hay que pegarle a la API de Rappi. Mientras
-tanto el workflow `probe` de Actions captura las respuestas reales: ver
-`docs/09-fixtures-y-probe.md`.
+Con esto el flujo completo de Rappi se verifico en vivo: ver `bitacora-api.md`.
 
 ## B2 — SMTP de Supabase Auth limitado
 

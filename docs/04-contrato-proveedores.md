@@ -105,6 +105,11 @@ paginacion y la normalizacion. Ver [`09-fixtures-y-probe.md`](09-fixtures-y-prob
 
 ## Rappi — el proveedor de la spec 001
 
+> **Verificado en vivo el 2026-10-07.** Todo lo de esta seccion corrio contra la API real: los
+> 4 pasos, los headers, el DFS de la tienda, los 3 valores de `context` y los campos del
+> producto. Los numeros de esa corrida estan en
+> [`../.llm-wiki/wiki/bitacora-api.md`](../.llm-wiki/wiki/bitacora-api.md).
+
 `BASE = https://services.rappi.com.ar`.
 
 | Paso | Request |
