@@ -5,6 +5,7 @@ import {
   esClaveSecreta,
   esRutaPublica,
   mensajeErrorLogin,
+  PREFIJO_CLAVE_SECRETA,
   tipoOtp,
 } from './auth';
 
@@ -81,16 +82,18 @@ describe('mensajeErrorLogin', () => {
   });
 });
 
+// Sin literales con forma de clave: los escaneres de secretos (GitGuardian) los marcan aunque
+// sean de juguete, y un falso positivo repetido entrena a ignorar el verdadero.
 describe('esClaveSecreta', () => {
   const jwt = (payload: object) =>
     ['e30', Buffer.from(JSON.stringify(payload)).toString('base64url'), 'firma'].join('.');
 
   it('la clave publica nueva no es secreta', () => {
-    expect(esClaveSecreta('sb_publishable_abc123')).toBe(false);
+    expect(esClaveSecreta('sb_publishable_de-prueba')).toBe(false);
   });
 
   it('la clave secreta nueva si', () => {
-    expect(esClaveSecreta('sb_secret_abc123')).toBe(true);
+    expect(esClaveSecreta(`${PREFIJO_CLAVE_SECRETA}de-prueba`)).toBe(true);
   });
 
   it('el JWT legacy con rol anon no es secreto', () => {

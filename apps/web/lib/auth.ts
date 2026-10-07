@@ -73,8 +73,10 @@ export function mensajeErrorLogin(error: {
  * clave saltea RLS. Las tres defensas estaticas (lint, grep, el archivo aparte en
  * `packages/db`) no ven el valor de una variable de entorno; esta si.
  */
+export const PREFIJO_CLAVE_SECRETA = 'sb_secret_';
+
 export function esClaveSecreta(clave: string): boolean {
-  if (clave.startsWith('sb_secret_')) return true;
+  if (clave.startsWith(PREFIJO_CLAVE_SECRETA)) return true;
   const payload = clave.split('.')[1];
   if (!payload) return false;
   try {
