@@ -1,0 +1,13 @@
+{
+  "nombre": "oferta-permanente",
+  "descripcion": "Cuesta $600 hace 10 dias, mas que oferta_permanente_dias (7). Ese ES su precio normal, por mas que el retailer siga mostrando $1000 tachado. Corta antes de calcular referencia: no hace falta.",
+  "filas": [
+    { "diasAtras": 40, "precio": 1000, "promoExcluida": false, "enStock": true },
+    { "diasAtras": 10, "precio": 600,  "promoExcluida": false, "enStock": true }
+  ],
+  "esperado": {
+    "estadoOferta": "inflado",
+    "precioReferencia": null,
+    "desdeDiasAtras": 10
+  }
+}

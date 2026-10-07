@@ -1,0 +1,15 @@
+{
+  "nombre": "empate-de-duracion",
+  "descripcion": "El precio alterna 500 y 800 en tramos de 3 dias exactos, todo dentro de la ventana de 14 dias: $500 acumula 6 dias y $800 acumula 6 dias. Empate. Gana el MAS VIEJO ($500, insertado primero), que es lo que hace `max(held, key=held.get)` en Python con un dict con orden de insercion. En TypeScript hay que iterar el Map en orden de insercion comparando con `>` ESTRICTO: con `>=` gana 800 y el resultado cambia. La ultima fila (600) queda afuera del calculo a proposito.",
+  "filas": [
+    { "diasAtras": 13, "precio": 500, "promoExcluida": false, "enStock": true },
+    { "diasAtras": 10, "precio": 800, "promoExcluida": false, "enStock": true },
+    { "diasAtras": 7,  "precio": 500, "promoExcluida": false, "enStock": true },
+    { "diasAtras": 4,  "precio": 800, "promoExcluida": false, "enStock": true },
+    { "diasAtras": 1,  "precio": 600, "promoExcluida": false, "enStock": true }
+  ],
+  "esperado": {
+    "precioHabitualAhora": 500,
+    "duracionesSegundos": { "500": 518400, "800": 518400 }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "nombre": "pasillo-comparables",
+  "descripcion": "El indice de sub-pasillo para nuevo_vs_pasillo. El producto bajo test ('Yogur sospechoso') esta a $300 por kilo cuando los mas baratos de su gondola estan a $2000 por kilo: ratio 0.15, por debajo del umbral 0.2, asi que dispara. Con 8 comparables, Math.floor(8/10) da indice 0 — el minimo, NO 'el percentil 10'. Es intencional. Los tres productos de `ignorados` no tienen que entrar al indice.",
+  "subPasillo": "Yogures",
+  "bajoTest": {
+    "idExterno": "sospechoso",
+    "nombre": "Yogur sospechoso 1 kg",
+    "presentacion": "1 X 1 kg",
+    "precio": 300,
+    "promoExcluida": false,
+    "enStock": true
+  },
+  "comparables": [
+    { "idExterno": "c1", "presentacion": "1 X 1 kg", "precio": 2000, "promoExcluida": false, "enStock": true },
+    { "idExterno": "c2", "presentacion": "1 X 1 kg", "precio": 3000, "promoExcluida": false, "enStock": true },
+    { "idExterno": "c3", "presentacion": "1 X 1 kg", "precio": 4000, "promoExcluida": false, "enStock": true },
+    { "idExterno": "c4", "presentacion": "1 X 1 kg", "precio": 5000, "promoExcluida": false, "enStock": true },
+    { "idExterno": "c5", "presentacion": "1 X 1 kg", "precio": 6000, "promoExcluida": false, "enStock": true },
+    { "idExterno": "c6", "presentacion": "1 X 1 kg", "precio": 7000, "promoExcluida": false, "enStock": true },
+    { "idExterno": "c7", "presentacion": "1 X 1 kg", "precio": 8000, "promoExcluida": false, "enStock": true },
+    { "idExterno": "c8", "presentacion": "1 X 1 kg", "precio": 9000, "promoExcluida": false, "enStock": true }
+  ],
+  "ignorados": [
+    { "idExterno": "i1", "presentacion": "2 Und",    "precio": 100,  "promoExcluida": false, "enStock": true,  "porque": "las Und no son comparables: un paquete de 150 servilletas y una pizza son los dos '1 Und'" },
+    { "idExterno": "i2", "presentacion": "1 X 1 kg", "precio": 50,   "promoExcluida": false, "enStock": false, "porque": "sin stock: no tiene precio vigente" },
+    { "idExterno": "i3", "presentacion": "1 X 1 kg", "precio": 10,   "promoExcluida": true,  "enStock": true,  "porque": "promo excluida: no es su precio real para este usuario" }
+  ],
+  "esperado": {
+    "conOchoComparables": {
+      "referencia": 2000,
+      "n": 8,
+      "ratio": 0.15,
+      "dispara": true
+    },
+    "conSieteComparables": {
+      "nota": "sacando c8, quedan 7 comparables: menos que min_comparables (8), asi que subPasilloReferencia devuelve null y la regla NO corre",
+      "referencia": null,
+      "dispara": false
+    }
+  }
+}

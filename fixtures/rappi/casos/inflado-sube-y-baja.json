@@ -1,0 +1,15 @@
+{
+  "nombre": "inflado-sube-y-baja",
+  "descripcion": "El truco clasico: suben el precio una semana y despues lo 'rebajan' a lo que costaba, con cartel de -50%. Funciona porque el precio habitual pondera por duracion: los 25 dias a $700 pesan mas que los 3 dias a $1400, asi que ref = 700 y 700 <= 700*0.85 es falso. Si esto da 'real', todo el proyecto miente.",
+  "filas": [
+    { "diasAtras": 30, "precio": 700,  "promoExcluida": false, "enStock": true },
+    { "diasAtras": 5,  "precio": 1400, "promoExcluida": false, "enStock": true },
+    { "diasAtras": 2,  "precio": 700,  "promoExcluida": false, "enStock": true }
+  ],
+  "esperado": {
+    "estadoOferta": "inflado",
+    "precioReferencia": 700,
+    "desdeDiasAtras": 2,
+    "precioHabitualAhora": 700
+  }
+}

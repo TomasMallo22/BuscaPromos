@@ -1,0 +1,13 @@
+{
+  "nombre": "sin-historial-corto",
+  "descripcion": "Lo vemos hace 3 dias. El historial previo al cambio (2 dias) es menor a oferta_min_historial_dias (7), asi que no se puede opinar. Es el caso del arranque ciego: durante la primera semana la mayoria de los productos cae aca.",
+  "filas": [
+    { "diasAtras": 3, "precio": 500, "promoExcluida": false, "enStock": true },
+    { "diasAtras": 1, "precio": 300, "promoExcluida": false, "enStock": true }
+  ],
+  "esperado": {
+    "estadoOferta": "sin_historial",
+    "precioReferencia": null,
+    "desdeDiasAtras": 1
+  }
+}

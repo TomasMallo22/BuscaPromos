@@ -1,0 +1,11 @@
+{
+  "name": "@buscapromos/crawler",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@buscapromos/core": "*",
+    "@buscapromos/db": "*",
+    "@buscapromos/providers": "*"
+  }
+}

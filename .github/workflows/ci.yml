@@ -1,0 +1,58 @@
+# Corre en cada Pull Request y en cada push a main: un PR en rojo no se mergea.
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+env:
+  TZ: America/Argentina/Buenos_Aires
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      - name: Tests
+        run: npm run test
+
+      # Nivel 4 — consistencia estructural. Ver docs/09-fixtures-y-probe.md.
+      - name: El enum regla_clave coincide con el registry
+        run: npm run reglas:verificar
+      - name: Los fixtures validan contra su schema y su sha256
+        run: npm run fixtures:verificar
+
+      # Defensa en profundidad: la clave service_role saltea RLS por diseño, asi que si
+      # llega al bundle del front expone la base entera. Ver docs/10-seguridad-rls.md.
+      - name: service_role no se usa en apps/web
+        run: |
+          if grep -rn "SUPABASE_SERVICE_ROLE_KEY\|servicio" apps/web --include='*.ts' --include='*.tsx' 2>/dev/null; then
+            echo "::error::apps/web no puede referenciar el cliente service_role"
+            exit 1
+          fi
+
+      - name: Ningun supabase.from() fuera de packages/db
+        run: |
+          if grep -rn "supabase\.from(" apps packages --include='*.ts' --include='*.tsx' 2>/dev/null \
+             | grep -v '^packages/db/'; then
+            echo "::error::todo acceso a datos va por packages/db"
+            exit 1
+          fi
+
+      - name: Build de la web
+        run: npm run build

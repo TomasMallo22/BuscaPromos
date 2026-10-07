@@ -16,10 +16,17 @@ SDD, la configuracion del monorepo y la documentacion base. Todavia no hay codig
 - Decisiones de arquitectura cerradas → los 11 ADRs en `docs/adr/`.
 - `CLAUDE.md` con las 16 reglas de oro del dominio.
 - Estructura de carpetas, `package.json` con workspaces, `tsconfig.base.json` estricto.
+- Los 11 ADRs, `docs/00` a `docs/11` y `docs/14`.
+- `specs/README.md` con el ciclo de vida de 6 pasos y `specs/_plantilla/`.
+- Las 9 skills de `.claude/skills/` (6 de dominio, 3 de proceso) y los 5 commands.
+- `.github/workflows/ci.yml` con los chequeos estructurales del nivel 4.
+- **Los 7 casos sinteticos de `fixtures/rappi/casos/`, validados contra la implementacion
+  original en Python** con `scripts/validar-casos-contra-original.py`. Los valores esperados no
+  son lo que nosotros creemos: son lo que devuelve el algoritmo de referencia.
 
 ## Falta (spec 000)
 
-- `packages/*` y `apps/*` con su `package.json` y `tsconfig.json`.
+- `npm install` y que `npm run verificar` corra (faltan los scripts de `scripts/`).
 - eslint + las dos lint rules propias (`no-clave-regla-literal`, `no-service-role-en-web`).
 - Proyecto Supabase en `sa-east-1` + migraciones 0001, 0007, 0008 + `db:tipos`.
 - Next 15 mobile-first en Vercel: `/login` con magic link, `/feed` vacio, `/ajustes`.

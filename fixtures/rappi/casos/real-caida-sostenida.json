@@ -1,0 +1,14 @@
+{
+  "nombre": "real-caida-sostenida",
+  "descripcion": "Una oferta de verdad: 29 dias a $700 y ayer bajo a $400. La baja es del 43%, muy por encima de oferta_real_baja (15%).",
+  "filas": [
+    { "diasAtras": 30, "precio": 700, "promoExcluida": false, "enStock": true },
+    { "diasAtras": 1,  "precio": 400, "promoExcluida": false, "enStock": true }
+  ],
+  "esperado": {
+    "estadoOferta": "real",
+    "precioReferencia": 700,
+    "desdeDiasAtras": 1,
+    "precioHabitualAhora": 700
+  }
+}

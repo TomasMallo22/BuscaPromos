@@ -1,0 +1,15 @@
+{
+  "nombre": "reajustes-dos-por-ciento",
+  "descripcion": "Cuatro reajustes cosmeticos (700, 712, 698, 705): todos estan dentro del 2% del precio actual, asi que colapsan hacia atras a un solo tramo y `desde` llega a la fila mas vieja. Sin ese colapso, cada reajuste de +-1-2% reiniciaria el reloj de 'desde cuando cuesta esto' y un producto estancado parecerina recien rebajado. El `desdeDiasAtras: 20` es lo que pincha este comportamiento.",
+  "filas": [
+    { "diasAtras": 20, "precio": 700, "promoExcluida": false, "enStock": true },
+    { "diasAtras": 14, "precio": 712, "promoExcluida": false, "enStock": true },
+    { "diasAtras": 7,  "precio": 698, "promoExcluida": false, "enStock": true },
+    { "diasAtras": 2,  "precio": 705, "promoExcluida": false, "enStock": true }
+  ],
+  "esperado": {
+    "estadoOferta": "inflado",
+    "precioReferencia": null,
+    "desdeDiasAtras": 20
+  }
+}
