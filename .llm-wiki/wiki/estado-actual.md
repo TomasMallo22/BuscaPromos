@@ -4,8 +4,9 @@ _Ultima actualizacion: 2026-10-07_
 
 ## Donde estamos
 
-**Spec 000 (andamiaje) en curso.** El repo tenia cero commits; se esta creando la estructura
-SDD, la configuracion del monorepo y la documentacion base. Todavia no hay codigo que corra.
+**Spec 000 (andamiaje)**: casi cerrada; lo que falta depende del dueño (Vercel, Resend) o de
+la base local (tests de RLS). **Spec 001**: el motor de deteccion en `packages/core` esta hecho
+y probado (tareas 1 a 7). Sigue la base de datos (tarea 8 en adelante).
 
 ## Hecho
 
@@ -51,19 +52,38 @@ SDD, la configuracion del monorepo y la documentacion base. Todavia no hay codig
 - SMTP de Resend en Supabase Auth (sin esto el login se rompe con 3 usuarios: ver `bloqueos.md`).
 - `ci.yml` verde.
 
-## Spec 001 — especificada y lista para ejecutar
+## Spec 001 — en curso: el motor esta hecho (tareas 1 a 7)
 
 `specs/001-rappi-end-to-end/` tiene los 5 archivos completos: propuesta con las decisiones del
 dueño (registro por invitacion, filtros de dos niveles), 19 escenarios, diseño con el arbol de
 archivos y las migraciones, 26 tareas en orden, y la verificacion escenario por escenario.
 
+**El motor de deteccion existe y esta probado** (2026-10-07). En `packages/core/src/`:
+
+- `reglas/registry.ts` — las 7 reglas: clave, umbral, titulo, emoji, orden y `evaluar`. Mas
+  `PARAMETROS` y `UMBRALES_DEFAULT`. `reglas:verificar` compara contra el enum real, probado
+  con deriva en los dos sentidos.
+- `normalizacion/presentacion.ts`, `deteccion/precio-habitual.ts`, `estado-oferta.ts`,
+  `pasillo.ts` y `motor.ts` (`evaluarReglas`, con los dos cortes y el `else if`).
+- **124 tests**, incluidos los 7 casos de `fixtures/rappi/casos/` leidos del JSON. Cada valor
+  esperado escrito a mano se contrasto contra el Python original antes de implementar, y
+  cada hazard (`>` estricto, tramo actual excluido, ventana en `desde`, `floor(n/10)`, el
+  `else if`, `gran_descuento` exige `real`) tiene un mutante que hace fallar los tests.
+- El oraculo (`scripts/validar-casos-contra-original.py`) da 28 chequeos OK.
+
+Dos diferencias deliberadas con el original, las dos con test: el corte por sin stock vive
+en `evaluarReglas` (en el original estaba en `evaluate`), y la tabla de unidades del parser es
+un `Map` (con un objeto, `'1 X 5 constructor'` tiraba `TypeError`).
+
 **Se puede ejecutar desde una sesion local**: ver `docs/12-trabajar-en-local.md`.
 
 ## Lo que sigue
 
-Ejecutar la spec 001, empezando por las tareas 1 a 7: el motor de deteccion en
-`packages/core`, con los tests primero. Es el activo intelectual, no depende de la base ni de
-la red, y sus valores esperados ya estan validados contra el Python original.
+Spec 001 desde la tarea 8: las migraciones 0002 a 0006, 0009 y 0010, y despues
+`packages/db`. Cargar la skill `modelo-de-datos`.
+
+**La revision adversarial del motor esta pendiente** y es obligatoria (toca logica de
+reglas). Mejor en otra sesion que la que lo implemento.
 
 ## Esperando al dueño
 
@@ -74,3 +94,4 @@ la red, y sus valores esperados ya estan validados contra el Python original.
 | Decidir licencia del repo al ser publico | Legal | pendiente |
 | Avisarle a Ivo que se porta su logica | Cortesia | pendiente |
 | Cuantas direcciones realistas | Dimensionar `tiendas` y el presupuesto de minutos | pendiente |
+| ¿`caida_vs_historial` con 2 dias de historia esta bien? | Ver `docs-desactualizados.md`: el E5 de la spec 001 dice que no puede pasar, el original lo hace | pendiente |

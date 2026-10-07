@@ -5,13 +5,13 @@ contenedor ya esta abierta (bloqueo B1 cerrado), asi que tambien se puede iterar
 
 | # | Tarea | Red | Estado |
 |---|---|---|---|
-| 1 | `packages/core/src/reglas/registry.ts` — la unica definicion de regla | no | ⏳ |
-| 2 | `normalizacion/presentacion.ts` + tests (las "Und" se descartan) | no | ⏳ |
-| 3 | `deteccion/precio-habitual.ts` + tests — **el hazard del empate** | no | ⏳ |
-| 4 | `deteccion/estado-oferta.ts` + tests — **el caso 700→1400→700** | no | ⏳ |
-| 5 | `deteccion/pasillo.ts` + tests — **el hazard de `floor(n/10)`** | no | ⏳ |
-| 6 | `deteccion/motor.ts` + tests — la estructura de `check()` con el `else if` | no | ⏳ |
-| 7 | `npm run reglas:verificar` en verde con el registry real | no | ⏳ |
+| 1 | `packages/core/src/reglas/registry.ts` — la unica definicion de regla | no | ✅ |
+| 2 | `normalizacion/presentacion.ts` + tests (las "Und" se descartan) | no | ✅ |
+| 3 | `deteccion/precio-habitual.ts` + tests — **el hazard del empate** | no | ✅ |
+| 4 | `deteccion/estado-oferta.ts` + tests — **el caso 700→1400→700** | no | ✅ |
+| 5 | `deteccion/pasillo.ts` + tests — **el hazard de `floor(n/10)`** | no | ✅ |
+| 6 | `deteccion/motor.ts` + tests — la estructura de `check()` con el `else if` | no | ✅ |
+| 7 | `npm run reglas:verificar` en verde con el registry real | no | ✅ |
 | 8 | Migraciones 0002–0006 | no | ⏳ |
 | 9 | Migracion 0009 (filtros de dos niveles) | no | ⏳ |
 | 10 | Migracion 0010 (invitaciones) | no | ⏳ |

@@ -24,14 +24,14 @@ python scripts/validar-casos-contra-original.py <ruta al repo de Ivo>
 |---|---|---|
 | E1 primera corrida sin alertas | test de `aplicar_lote_precios` + corrida seca | ⏳ |
 | E2 segunda corrida, cero cambios | **el test que defiende la regla de oro 2** | ⏳ |
-| E3 caida fuerte dispara | caso sintetico + test del motor | ⏳ |
+| E3 caida fuerte dispara | caso sintetico + test del motor | ✅ motor (`motor.test.ts`); falta el Telegram |
 | E4 se ve en la web | manual, desde el celular | ⏳ |
 | E5 arranque ciego | el feed muestra el banner | ⏳ |
 | E6 corrida al 40% se descarta | test con catalogo recortado | ⏳ |
 | E7 grupo fallido no marca sin stock | test con `falloMotivo` | ⏳ |
 | E8 anidamiento extra | **tomar el fixture y envolverlo dos niveles** | ⏳ |
 | E9 401 renueva el token | test con cliente que devuelve 401 una vez | ⏳ |
-| E10-E11 no se alerta sin stock ni promo nueva | tests del motor | ⏳ |
+| E10-E11 no se alerta sin stock ni promo nueva | tests del motor | ✅ `motor.test.ts` |
 | E12 no se repite | test de `guardarAlerta` con baja del 0.8% | ⏳ |
 | E13 oscilacion ±1% | **20 corridas simuladas, a lo sumo un aviso** | ⏳ |
 | E14 A no ve datos de B | **dos JWT reales, nunca `service_role`** | ⏳ |
@@ -50,7 +50,7 @@ que llegar**. Es la razon de ser de la red de seguridad.
 
 - [ ] `npm run verificar` verde, con la salida pegada
 - [ ] Los 19 escenarios verificados
-- [ ] El oraculo en Python sigue dando los 25 chequeos OK
+- [ ] El oraculo en Python sigue dando los 28 chequeos OK
 - [ ] RLS probado con dos JWT reales
 - [ ] Ningun dato personal en el repo, en logs ni en artifacts
 - [ ] `05-revision-adversarial.md` completa — **obligatoria**: toca el motor, el anti-spam, RLS

@@ -32,7 +32,7 @@ El reloj se inyecta (`ahora: number`, epoch en segundos). Si aparece un `await` 
 | `zip(rows, rows[1:])` — excluye el tramo actual | `for (let i = 0; i < filas.length - 1; i++)` |
 
 El oraculo es `scripts/validar-casos-contra-original.py`: corre los casos de
-`fixtures/rappi/casos/` contra el Python original. **Los 25 chequeos ya dan OK**, asi que los
+`fixtures/rappi/casos/` contra el Python original. **Los 28 chequeos ya dan OK**, asi que los
 valores esperados no son una hipotesis.
 
 ### `packages/providers` — el contrato y Rappi

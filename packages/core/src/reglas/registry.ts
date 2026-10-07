@@ -6,10 +6,18 @@
  * `suscripciones.reglas_habilitadas`. Si una clave, un titulo o un umbral aparece escrito en
  * otro lado, esta mal.
  *
- * Los umbrales son los de `DEFAULT_RULES` de `turbo/detect.py` (commit 431cb3f). Antes de
- * bajar uno, leé la skill `motor-deteccion`: cada falso positivo cuesta la confianza del usuario.
+ * Los umbrales y las condiciones son los de `DEFAULT_RULES` y `check` de `turbo/detect.py`
+ * (commit 431cb3f). Antes de bajar un umbral, leé la skill `motor-deteccion`: cada falso
+ * positivo cuesta la confianza del usuario.
+ *
+ * Cada regla sabe si dispara (`evaluar`), pero **no** en que orden ni cual corta a cual: esa
+ * estructura vive en `deteccion/motor.ts` y es parte del contrato.
  */
+import type { Disparo, EntradaMotor } from '../deteccion/entrada.js';
 import type { ReglaClave } from './tipos.js';
+
+/** Umbral por regla. `null` apaga la regla. */
+export type Umbrales = { readonly [K in ReglaClave]: number | null };
 
 export interface DefinicionRegla<K extends ReglaClave = ReglaClave> {
   readonly clave: K;
@@ -23,6 +31,8 @@ export interface DefinicionRegla<K extends ReglaClave = ReglaClave> {
   readonly emoji: string;
   /** Desempate al deduplicar por producto: menor gana. Ver docs/05-alertas-y-notificaciones.md. */
   readonly orden: number;
+  /** `null` si no dispara. Pura: todo lo que necesita viene en la entrada. */
+  readonly evaluar: (e: EntradaMotor, u: Umbrales) => Disparo | null;
 }
 
 /** El orden de las propiedades es el orden en que `evaluarReglas` las considera. */
@@ -33,6 +43,16 @@ export const REGISTRY: { readonly [K in ReglaClave]: DefinicionRegla<K> } = {
     titulo: 'Precio absurdo',
     emoji: '🚨',
     orden: 1,
+    // $0, $1...: no hace falta mas analisis. El tachado se informa si existe, nada mas.
+    evaluar: ({ producto: { precio, precioLista } }, u) =>
+      u.precio_absurdo !== null && precio <= u.precio_absurdo
+        ? {
+            regla: 'precio_absurdo',
+            precioReferencia: precioLista || null,
+            ratio: precioLista ? precio / precioLista : null,
+            detalle: {},
+          }
+        : null,
   },
   caida_vs_historial: {
     clave: 'caida_vs_historial',
@@ -40,6 +60,15 @@ export const REGISTRY: { readonly [K in ReglaClave]: DefinicionRegla<K> } = {
     titulo: 'Bajó vs. su precio habitual',
     emoji: '🚨',
     orden: 2,
+    evaluar: ({ producto: { precio, precioAnterior }, habitual }, u) =>
+      u.caida_vs_historial !== null && habitual && precio / habitual <= u.caida_vs_historial
+        ? {
+            regla: 'caida_vs_historial',
+            precioReferencia: habitual,
+            ratio: precio / habitual,
+            detalle: precioAnterior ? { precioAnterior } : {},
+          }
+        : null,
   },
   descuento_extremo: {
     clave: 'descuento_extremo',
@@ -47,6 +76,10 @@ export const REGISTRY: { readonly [K in ReglaClave]: DefinicionRegla<K> } = {
     titulo: 'Descuento extremo',
     emoji: '🚨',
     orden: 3,
+    evaluar: ({ producto: { precio, precioLista } }, u) =>
+      u.descuento_extremo !== null && precioLista > 0 && precio / precioLista <= u.descuento_extremo
+        ? { regla: 'descuento_extremo', precioReferencia: precioLista, ratio: precio / precioLista, detalle: {} }
+        : null,
   },
   gran_descuento: {
     clave: 'gran_descuento',
@@ -54,6 +87,20 @@ export const REGISTRY: { readonly [K in ReglaClave]: DefinicionRegla<K> } = {
     titulo: 'Oferta real fuerte',
     emoji: '🔥',
     orden: 4,
+    // La unica que exige `estadoOferta === 'real'`: reporta ofertas genuinas, no errores, asi
+    // que un tachado alto sobre el precio de siempre no la dispara.
+    evaluar: ({ producto: { precio, precioLista }, oferta }, u) =>
+      precioLista > 0 &&
+      u.gran_descuento &&
+      precio / precioLista <= u.gran_descuento &&
+      oferta?.estado === 'real'
+        ? {
+            regla: 'gran_descuento',
+            precioReferencia: precioLista,
+            ratio: precio / precioLista,
+            detalle: oferta.precioReferencia === null ? {} : { precioHabitualPrevio: oferta.precioReferencia },
+          }
+        : null,
   },
   vs_otras_tiendas: {
     clave: 'vs_otras_tiendas',
@@ -61,6 +108,15 @@ export const REGISTRY: { readonly [K in ReglaClave]: DefinicionRegla<K> } = {
     titulo: 'Más barato que en otras tiendas',
     emoji: '🚨',
     orden: 5,
+    evaluar: ({ producto: { precio }, mediana }, u) =>
+      u.vs_otras_tiendas !== null && mediana?.precio && precio / mediana.precio <= u.vs_otras_tiendas
+        ? {
+            regla: 'vs_otras_tiendas',
+            precioReferencia: mediana.precio,
+            ratio: precio / mediana.precio,
+            detalle: { nTiendas: mediana.nTiendas },
+          }
+        : null,
   },
   nuevo_vs_pasillo: {
     clave: 'nuevo_vs_pasillo',
@@ -68,19 +124,44 @@ export const REGISTRY: { readonly [K in ReglaClave]: DefinicionRegla<K> } = {
     titulo: 'Producto nuevo muy barato para su góndola',
     emoji: '🚨',
     orden: 6,
+    // La red para productos nuevos: corre SOLO sin historial propio, que es justo cuando las
+    // demas reglas no pueden opinar.
+    evaluar: ({ producto: { precio }, habitual, pasillo }, u) =>
+      habitual === null && pasillo && u.nuevo_vs_pasillo && precio / pasillo.referencia <= u.nuevo_vs_pasillo
+        ? {
+            regla: 'nuevo_vs_pasillo',
+            precioReferencia: pasillo.referencia,
+            ratio: precio / pasillo.referencia,
+            detalle: { nComparables: pasillo.n },
+          }
+        : null,
   },
-  // Sin umbral propio: en el original se evalua con el de `descuento_extremo`. Esta apagada por
-  // default (regla de oro 5): la promo de usuario nuevo de Rappi no aplica a cuentas existentes.
+  // Sin umbral propio: se evalua con el de `descuento_extremo`, como en el original. Solo corre
+  // si se pide explicitamente (regla de oro 5): la promo de usuario nuevo de Rappi no aplica a
+  // cuentas existentes.
   promo_usuario_nuevo: {
     clave: 'promo_usuario_nuevo',
     umbral: null,
     titulo: 'Promo usuario nuevo',
     emoji: '🚨',
     orden: 7,
+    evaluar: ({ producto: { precio, precioLista, maxUnidadesPromo } }, u) =>
+      u.descuento_extremo !== null && precioLista > 0 && precio / precioLista <= u.descuento_extremo
+        ? {
+            regla: 'promo_usuario_nuevo',
+            precioReferencia: precioLista,
+            ratio: precio / precioLista,
+            detalle: maxUnidadesPromo ? { maxUnidades: maxUnidadesPromo } : {},
+          }
+        : null,
   },
 };
 
 export const CLAVES_REGLA = Object.keys(REGISTRY) as readonly ReglaClave[];
+
+export const UMBRALES_DEFAULT: Umbrales = Object.fromEntries(
+  CLAVES_REGLA.map((clave) => [clave, REGISTRY[clave].umbral]),
+) as Umbrales;
 
 /** Parametros del motor que no son el umbral de una regla. Ver docs/03-motor-deteccion.md. */
 export const PARAMETROS = {
