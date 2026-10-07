@@ -54,5 +54,6 @@ jobs:
             exit 1
           fi
 
+      # El build de la web se activa cuando exista apps/web (tarea 15 de la spec 000).
       - name: Build de la web
         run: npm run build

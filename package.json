@@ -12,24 +12,21 @@
   },
   "scripts": {
     "verificar": "npm run typecheck && npm run lint && npm run test && npm run reglas:verificar && npm run fixtures:verificar",
-    "typecheck": "tsc -b --noEmit",
+    "typecheck": "tsc -b",
     "lint": "eslint . --max-warnings 0",
     "test": "vitest run",
     "test:ver": "vitest",
-    "build": "npm run build -w apps/web",
+    "build": "echo 'apps/web todavia no existe (tarea 15 de la spec 000)'",
     "dev": "npm run dev -w apps/web",
-
     "db:arrancar": "supabase start",
     "db:reset": "supabase db reset",
     "db:tipos": "supabase gen types typescript --local > packages/db/src/tipos.ts",
     "db:lint": "supabase db lint --level warning",
-
     "reglas:verificar": "tsx scripts/verificar-reglas.ts",
     "fixtures:verificar": "tsx scripts/verificar-fixtures.ts",
     "fixtures:promover": "tsx scripts/promover-fixtures.ts",
     "redactar": "tsx scripts/redactar.ts",
     "redactar:verificar": "tsx scripts/verificar-redaccion.ts",
-
     "probe": "tsx apps/crawler/src/probe.ts",
     "corrida": "tsx apps/crawler/src/corrida.ts",
     "corrida:seca": "tsx apps/crawler/src/corrida.ts --seca",
@@ -39,9 +36,11 @@
   },
   "devDependencies": {
     "@types/node": "^22.7.5",
+    "eslint": "^9.39.5",
+    "fast-check": "^3.23.1",
     "tsx": "^4.19.2",
     "typescript": "^5.6.3",
-    "vitest": "^2.1.8",
-    "fast-check": "^3.23.1"
+    "typescript-eslint": "^8.71.1",
+    "vitest": "^2.1.8"
   }
 }

@@ -23,12 +23,19 @@ SDD, la configuracion del monorepo y la documentacion base. Todavia no hay codig
 - **Los 7 casos sinteticos de `fixtures/rappi/casos/`, validados contra la implementacion
   original en Python** con `scripts/validar-casos-contra-original.py`. Los valores esperados no
   son lo que nosotros creemos: son lo que devuelve el algoritmo de referencia.
+- `npm run verificar` **corre y da verde**: typecheck, eslint con las dos lint rules propias,
+  10 tests, `reglas:verificar` y `fixtures:verificar`.
+- Migracion `0001_enums_y_schemas.sql` con el schema `private` y los 7 enums del dominio.
+- `packages/core/src/tipos.ts` con los tipos del dominio y un test que verifica que **no se
+  desincronicen del SQL** (probado: agregar un valor al enum rompe el test).
+- Los dos scripts de verificacion estructural, **probados con casos negativos**: la deriva
+  registry/enum en los dos sentidos, filas fuera de orden cronologico, campos faltantes y
+  tokens dentro de un fixture.
 
 ## Falta (spec 000)
 
-- `npm install` y que `npm run verificar` corra (faltan los scripts de `scripts/`).
-- eslint + las dos lint rules propias (`no-clave-regla-literal`, `no-service-role-en-web`).
-- Proyecto Supabase en `sa-east-1` + migraciones 0001, 0007, 0008 + `db:tipos`.
+- Proyecto Supabase en `sa-east-1` + migraciones 0007 y 0008 + `db:tipos`.
+  **Necesita que el dueño elija la organizacion de Supabase.**
 - Next 15 mobile-first en Vercel: `/login` con magic link, `/feed` vacio, `/ajustes`.
 - SMTP de Resend en Supabase Auth (sin esto el login se rompe con 3 usuarios: ver `bloqueos.md`).
 - `ci.yml` verde.

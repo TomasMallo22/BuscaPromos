@@ -12,13 +12,14 @@
 | 8 | Las 9 skills de `.claude/skills/` | no | ✅ |
 | 9 | Los 5 commands de `.claude/commands/` | no | ✅ |
 | 10 | `package.json` + `tsconfig.json` de cada workspace | no | ✅ |
-| 11 | eslint + las 2 lint rules propias | no | ⏳ |
+| 11 | eslint + las 2 lint rules propias | no | ✅ |
 | 12 | `.github/workflows/ci.yml` | no | ✅ |
-| 13 | Proyecto Supabase `sa-east-1` + migraciones 0001, 0007, 0008 | no (docker local) | ⏳ |
+| 13 | Migracion 0001 (enums) | no | ✅ |
+| 13b | Proyecto Supabase `sa-east-1` + migraciones 0007 y 0008 | no (docker local) | ⏳ dueño |
 | 14 | `npm run db:tipos` → `packages/db/src/tipos.ts` | no | ⏳ |
 | 15 | Next 15 mobile-first: `/login` con magic link, `/feed` vacio, `/ajustes` | no | ⏳ |
-| 16 | SMTP de Resend en Supabase Auth | — | ⏳ (dueño) |
-| 17 | Deploy a Vercel y probar el login desde el celular | — | ⏳ |
+| 16 | SMTP de Resend en Supabase Auth | — | ⏳ dueño |
+| 17 | Deploy a Vercel y probar el login desde el celular | — | ⏳ dueño |
 | 18 | Actualizar `.llm-wiki/wiki/estado-actual.md` | no | ✅ |
 | 19 | Casos sinteticos de `fixtures/rappi/casos/`, validados contra el original | no | ✅ |
 
