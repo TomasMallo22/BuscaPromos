@@ -2,32 +2,26 @@
 
 _Ultima actualizacion: 2026-10-07_
 
-## B1 — La red del contenedor de desarrollo esta cerrada
+## B1 — Los subdominios siguen bloqueados
 
-**Estado: abierto.** Verificado con `curl` el 2026-10-07: todos los hosts objetivo devuelven
-codigo 000 (el gateway del proxy rechaza el CONNECT con 403).
+**Estado: abierto, acotado.** El dueño cargo los dominios en modo Personalizado. Medido con
+`curl` el 2026-10-07, la lista hace **match exacto con el hostname y no cubre subdominios**:
 
 ```
-services.rappi.com.ar      000     datos.produccion.gob.ar   000
-www.jumbo.com.ar           000     ac.cnstrc.com             000
-www.carrefour.com.ar       000     api.laanonima.com.ar      000
-api.telegram.org           000     github.com                 ok   <- control
+rappi.com.ar   301 ok      services.rappi.com.ar  000 bloqueado   <- la API de Rappi
+jumbo.com.ar   301 ok      www.jumbo.com.ar       000 bloqueado
+                           api.telegram.org       000 bloqueado
 ```
 
-`registry.npmjs.org` y `pypi.org` estan en el `noProxy`, asi que instalar dependencias funciona.
-La misma politica bloquea 18 servidores MCP de los plugins `design` y `marketing`.
+Como **todos** los endpoints del proyecto son subdominios, faltan cargarlos con el comodin que
+el propio campo documenta (`*`): `*.rappi.com.ar`, `*.jumbo.com.ar`, `*.disco.com.ar`,
+`*.vea.com.ar`, `*.carrefour.com.ar`, `*.supermercadosdia.com.ar`, `*.masonline.com.ar`,
+`*.telegram.org`, `*.cnstrc.com`, `*.laanonima.com.ar`, `*.cloudfront.net`,
+`*.produccion.gob.ar`. Si el comodin no funcionara, van los hostnames exactos.
 
-**El campo "Allowed domains" del entorno no sirve acá**: su validador pide formato `example.com`
-o `.example.com` y rechaza los dominios argentinos, que tienen tres etiquetas
-(`rappi.com.ar`, `jumbo.com.ar`). Verificado por el dueño, falla con y sin `www.`.
-
-**Salida elegida:** subir el nivel de acceso de red del entorno (menu del entorno → Edit →
-Network access), que no requiere lista de dominios.
-
-**Mitigacion mientras siga abierto:** el workflow `probe` de Actions captura las respuestas
-reales y las sube como artifact; esas capturas, redactadas, son los fixtures. Se construye
-igual aunque el bloqueo se resuelva, porque los tests no pueden depender de que Rappi este
-arriba y la IP del contenedor no es la de Actions. Ver `docs/09-fixtures-y-probe.md`.
+**No frena la spec 000.** Frena la 001, donde hay que pegarle a la API de Rappi. Mientras
+tanto el workflow `probe` de Actions captura las respuestas reales: ver
+`docs/09-fixtures-y-probe.md`.
 
 ## B2 — SMTP de Supabase Auth limitado
 
@@ -38,9 +32,11 @@ emails por hora en el plan free. Con 6-10 usuarios haciendo magic link se agota 
 El dueño ya usa Resend en CirculoAjedrezBeccar. La misma cuenta cubre despues el canal email
 de alertas, asi que no es una integracion nueva.
 
-## B3 — El repo es privado y el cron necesita minutos
+## B3 — El repo es privado — RESUELTO 2026-10-07
 
-**Estado: esperando al dueño.** `TomasMallo22/BuscaPromos` esta privado: 2.000 min/mes en el
+**Estado: cerrado.** El repo es publico (`visibility: public`, responde 200 sin autenticacion),
+asi que Actions tiene minutos ilimitados y la cadencia del cron es libre. Se deja la nota de
+abajo por el contexto de la decision; ver ADR 0008. `TomasMallo22/BuscaPromos` esta privado: 2.000 min/mes en el
 plan free, y Actions factura redondeando hacia arriba por minuto y por job. Con corridas de
 ~3 min, una cadencia de 30 minutos son ~4.320 min/mes: no entra.
 

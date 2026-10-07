@@ -38,7 +38,16 @@ export default tseslint.config(
   // no-clave-regla-literal — ADR 0007. Una regla se define en un solo lugar: el registry.
   {
     files: ['**/*.ts', '**/*.tsx'],
-    ignores: ['packages/core/src/reglas/**', 'scripts/**', 'eslint.config.js', '**/*.test.ts'],
+    ignores: [
+      'packages/core/src/reglas/**',
+      // Generado por `npm run db:tipos` desde el esquema: las claves salen del enum de
+      // Postgres, no de alguien escribiendolas a mano. Lo que protege la consistencia de este
+      // archivo es `reglas:verificar`, que compara el enum contra el registry.
+      'packages/db/src/tipos.ts',
+      'scripts/**',
+      'eslint.config.js',
+      '**/*.test.ts',
+    ],
     rules: {
       'no-restricted-syntax': [
         'error',

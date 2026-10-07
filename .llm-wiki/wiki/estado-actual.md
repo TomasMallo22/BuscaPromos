@@ -32,10 +32,16 @@ SDD, la configuracion del monorepo y la documentacion base. Todavia no hay codig
   registry/enum en los dos sentidos, filas fuera de orden cronologico, campos faltantes y
   tokens dentro de un fixture.
 
+- **Proyecto Supabase creado y las tres migraciones aplicadas.** Proyecto `buscapromos`,
+  ref `yqfupeqgjibtfvgazvqw`, region `sa-east-1`, organizacion `httpsolutions`. Las 5 tablas
+  existen y **todas tienen RLS habilitado**; `get_advisors` de seguridad da **cero hallazgos**.
+- `packages/db/src/tipos.ts` generado desde el esquema real.
+- **El repo ya es publico**: Actions con minutos ilimitados, cadencia del cron libre.
+
 ## Falta (spec 000)
 
-- Proyecto Supabase en `sa-east-1` + migraciones 0007 y 0008 + `db:tipos`.
-  **Necesita que el dueño elija la organizacion de Supabase.**
+- Tests de RLS **con dos JWT reales de dos usuarios distintos** (nunca `service_role`).
+- Next 15 mobile-first: `/login` con magic link, `/feed` vacio, `/ajustes`.
 - Next 15 mobile-first en Vercel: `/login` con magic link, `/feed` vacio, `/ajustes`.
 - SMTP de Resend en Supabase Auth (sin esto el login se rompe con 3 usuarios: ver `bloqueos.md`).
 - `ci.yml` verde.

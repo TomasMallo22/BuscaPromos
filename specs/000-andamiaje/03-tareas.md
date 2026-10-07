@@ -15,8 +15,10 @@
 | 11 | eslint + las 2 lint rules propias | no | ✅ |
 | 12 | `.github/workflows/ci.yml` | no | ✅ |
 | 13 | Migracion 0001 (enums) | no | ✅ |
-| 13b | Proyecto Supabase `sa-east-1` + migraciones 0007 y 0008 | no (docker local) | ⏳ dueño |
-| 14 | `npm run db:tipos` → `packages/db/src/tipos.ts` | no | ⏳ |
+| 13b | Proyecto Supabase `sa-east-1` + migraciones 0007 y 0008 aplicadas | no | ✅ |
+| 13c | `get_advisors` de seguridad limpio | no | ✅ |
+| 14 | `npm run db:tipos` → `packages/db/src/tipos.ts` | no | ✅ |
+| 14b | Tests de RLS con dos JWT reales | no | ⏳ |
 | 15 | Next 15 mobile-first: `/login` con magic link, `/feed` vacio, `/ajustes` | no | ⏳ |
 | 16 | SMTP de Resend en Supabase Auth | — | ⏳ dueño |
 | 17 | Deploy a Vercel y probar el login desde el celular | — | ⏳ dueño |
