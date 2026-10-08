@@ -12,25 +12,29 @@ contenedor ya esta abierta (bloqueo B1 cerrado), asi que tambien se puede iterar
 | 5 | `deteccion/pasillo.ts` + tests — **el hazard de `floor(n/10)`** | no | ✅ |
 | 6 | `deteccion/motor.ts` + tests — la estructura de `check()` con el `else if` | no | ✅ |
 | 7 | `npm run reglas:verificar` en verde con el registry real | no | ✅ |
-| 8 | Migraciones 0002–0006 | no | ⏳ |
-| 9 | Migracion 0009 (filtros de dos niveles) | no | ⏳ |
-| 10 | Migracion 0010 (invitaciones) | no | ⏳ |
-| 11 | `db:tipos` + funciones de acceso en `packages/db` | no | ⏳ |
-| 12 | Tests de `aplicar_lote_precios` (segunda corrida = cero cambios) | no | ⏳ |
-| 13 | Tests de RLS **con dos JWT reales** | no | ⏳ |
-| 14 | `packages/providers/contrato.ts` + `cliente-http.ts` | no | ⏳ |
-| 15 | `providers/rappi`: politicas, schemas zod, los 4 pasos | no | ⏳ |
-| 16 | Capturar fixtures reales y promoverlos | **si** | ⏳ |
-| 17 | Tests de parsing contra fixtures, incluido el de anidamiento extra | no | ⏳ |
-| 18 | `apps/crawler/resolver-tiendas.ts` | **si** | ⏳ |
-| 19 | `apps/crawler/corrida.ts` con guarda del 50% + piso de 100 | **si** | ⏳ |
-| 20 | `apps/crawler/notificar.ts` con los filtros de dos niveles | no | ⏳ |
-| 21 | Bot de Telegram + webhook | **si** | ⏳ (token del dueño) |
-| 22 | `apps/web`: login por invitacion, feed, detalle | no | 🟡 login listo; feed y detalle esperan `hallazgos` |
-| 23 | Limpiar los scripts fantasma de `package.json` | no | ⏳ |
-| 24 | `corrida.yml`, `corrida-seca.yml`, `probe.yml` | no | ⏳ |
-| 25 | Deploy a Vercel | — | ⏳ dueño |
+| 8 | Migraciones 0009–0013 (catalogo, precios, `aplicar_lote`, corridas, hallazgos) | no | ⏳ |
+| 9 | `packages/core/src/deteccion/anti-spam.ts` + tests (capas 2 y 3) | no | ⏳ |
+| 10 | `packages/providers`: contrato, `cliente-http` (red y fixtures) | no | ⏳ |
+| 11 | `providers/rappi`: politicas, los 4 pasos, walk con duck-test | no | ⏳ |
+| 12 | Capturar fixtures reales (Obelisco), redactar, tests de parsing | **si** | ⏳ |
+| 13 | `db:tipos` + funciones de acceso en `packages/db` (web y crawler) | no | ⏳ |
+| 14 | `apps/crawler`: resolver direcciones pendientes | **si** | ⏳ |
+| 15 | `apps/crawler`: corrida con guarda del 50% + piso de 100, deteccion sobre los cambiados | **si** | ⏳ |
+| 16 | `corrida.yml` (cron 30 min + `workflow_dispatch`, `concurrency`) y `corrida-seca.yml` | no | ⏳ |
+| 17 | Web: `/direcciones/nueva` con GPS + Leaflet, guardar + disparar el workflow | no | ⏳ |
+| 18 | Web: feed con los estados (buscando, sin cobertura, juntando historial) y las cards | no | ⏳ |
+| 19 | Secrets de Actions y token de GitHub en Vercel | — | ⏳ dueño |
+| 20 | Primera corrida real de punta a punta desde la web | **si** | ⏳ |
+| 21 | Tests de RLS **con dos JWT reales** | no | ⏳ |
+| 22 | Migraciones 0014 (filtros) y 0015 (invitaciones) | no | ⏳ |
+| 23 | `apps/crawler/notificar.ts` con los filtros de dos niveles + bot de Telegram | **si** | ⏳ (token del dueño) |
+| 24 | Web: detalle `/feed/[id]` con el grafico de historial | no | ⏳ |
+| 25 | Limpiar los scripts fantasma de `package.json` | no | ⏳ |
 | 26 | Actualizar `.llm-wiki/wiki/estado-actual.md` | no | ⏳ |
+
+**Reordenadas el 2026-10-07**: la direccion desde la web y la primera busqueda al guardarla
+pasaron adelante de Telegram (ver `00-propuesta.md`). Cuanto antes corra el buscador, antes
+empieza a contar el historial que necesitan las reglas buenas.
 
 ## El orden importa
 
