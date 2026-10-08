@@ -26,7 +26,7 @@ create unique index hallazgos_uno_abierto on public.hallazgos (tienda_id, produc
 create index hallazgos_feed on public.hallazgos (tienda_id, ratio) where cerrado_at is null;
 
 -- El hallazgo vigente y el precio con el que se aviso. Capas 2 y 3 del anti-spam: re-alertar
--- solo si bajo mas de `realertarSiBaja`, cerrar solo si subio mas que `cerrarSiSube`.
+-- solo si bajo mas de `realertarSiBaja`, cerrar solo si subio mas que ese mismo margen.
 create table public.alerta_estado (
   tienda_id      uuid not null references public.tiendas(id) on delete cascade,
   producto_id    uuid not null references public.productos(id) on delete cascade,
