@@ -6,7 +6,8 @@ Una spec por iteracion. El ciclo de vida de cada una esta en [`../specs/README.m
 |---|---|---|
 | **000** | Andamiaje SDD + esqueleto | el dueño se loguea desde el celular y ve una pantalla vacia |
 | **001** | Rappi end-to-end, una direccion | recibe un Telegram con una promo real y la ve en la web |
-| **002** | Multiusuario y pantalla de direcciones | su pareja y un amigo entran y cargan sus direcciones |
+| **002** | Supermercados de Rappi (Jumbo, Disco, Vea, Carrefour, Coto, Dia, Farmacity) | ve ofertas de noche y `vs_otras_tiendas` encendido |
+| **002b** | Multiusuario: invitaciones y ajustes editables (la pantalla de direcciones ya entro en la 001) | su pareja y un amigo entran y cargan sus direcciones |
 | **003** | Robustez y observabilidad | el sistema avisa cuando se esta rompiendo |
 | **004** | VTEX: Jumbo, Disco, Vea, Carrefour, Dia, ChangoMas | promos de supermercado, y `vs_otras_tiendas` encendido |
 | **005** | SEPA como baseline | precio de referencia por EAN en ~3.600 comercios |
