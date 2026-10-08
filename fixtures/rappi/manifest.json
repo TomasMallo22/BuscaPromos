@@ -1,5 +1,114 @@
 {
   "proveedor": "rappi",
-  "nota": "Sin capturas reales todavia: la red del contenedor esta cerrada y el workflow probe no se corrio aun. Ver .llm-wiki/wiki/bloqueos.md B1.",
-  "capturas": []
+  "nota": "Capturas reales de la tienda Turbo 266872 (Obelisco, un punto publico), pasillo Bebidas completo. Las respuestas no traen tokens: los headers de autenticacion no se guardan.",
+  "capturas": [
+    {
+      "clave": "aisles_tree",
+      "archivo": "red/aisles-tree.json",
+      "metodo": "POST",
+      "url": "https://services.rappi.com.ar/api/web-gateway/web/dynamic/context/content/",
+      "capturado_at": "2026-10-08T01:39:09Z",
+      "app_version": "web_v1.223.2",
+      "run_id": "local-2026-10-08",
+      "sha256": "0320a60aee68ce9a548b017a64341ea4d68b6f8b9cd3f923a9aed5c2e7a26bbe",
+      "redactado": true,
+      "productos": 0
+    },
+    {
+      "clave": "sub_aisles:2804",
+      "archivo": "red/sub-aisles--2804.json",
+      "metodo": "POST",
+      "url": "https://services.rappi.com.ar/api/web-gateway/web/dynamic/context/content/",
+      "capturado_at": "2026-10-08T01:39:10Z",
+      "app_version": "web_v1.223.2",
+      "run_id": "local-2026-10-08",
+      "sha256": "fb70f1459ff8952717dde94b4fe59e37cfc790c19c46ff815552b3c50a4dfdc4",
+      "redactado": true,
+      "productos": 79
+    },
+    {
+      "clave": "aisle_detail:19182:offset=0",
+      "archivo": "red/aisle-detail--19182--offset-0.json",
+      "metodo": "POST",
+      "url": "https://services.rappi.com.ar/api/web-gateway/web/dynamic/context/content/",
+      "capturado_at": "2026-10-08T01:39:11Z",
+      "app_version": "web_v1.223.2",
+      "run_id": "local-2026-10-08",
+      "sha256": "3fd43a0bc903ef8c2483381e22a4f193120aed88d6deb87ccaf3a8ffe5abe33b",
+      "redactado": true,
+      "productos": 3
+    },
+    {
+      "clave": "aisle_detail:2811:offset=0",
+      "archivo": "red/aisle-detail--2811--offset-0.json",
+      "metodo": "POST",
+      "url": "https://services.rappi.com.ar/api/web-gateway/web/dynamic/context/content/",
+      "capturado_at": "2026-10-08T01:39:12Z",
+      "app_version": "web_v1.223.2",
+      "run_id": "local-2026-10-08",
+      "sha256": "0cb2a524bc9ebcdac37e509eb5b23a8c3539a55869e699b6ad1288da02d9b8da",
+      "redactado": true,
+      "productos": 106
+    },
+    {
+      "clave": "aisle_detail:2810:offset=0",
+      "archivo": "red/aisle-detail--2810--offset-0.json",
+      "metodo": "POST",
+      "url": "https://services.rappi.com.ar/api/web-gateway/web/dynamic/context/content/",
+      "capturado_at": "2026-10-08T01:39:13Z",
+      "app_version": "web_v1.223.2",
+      "run_id": "local-2026-10-08",
+      "sha256": "d305544b1f9f824907345bac9cda3f9b37e9473dec3cc11510265530e20ec546",
+      "redactado": true,
+      "productos": 1
+    },
+    {
+      "clave": "aisle_detail:2805:offset=0",
+      "archivo": "red/aisle-detail--2805--offset-0.json",
+      "metodo": "POST",
+      "url": "https://services.rappi.com.ar/api/web-gateway/web/dynamic/context/content/",
+      "capturado_at": "2026-10-08T01:39:14Z",
+      "app_version": "web_v1.223.2",
+      "run_id": "local-2026-10-08",
+      "sha256": "df18836ac29b1dc1794b7891ddfeaed58f1bfd2c101a9fe904e1805ca3d54248",
+      "redactado": true,
+      "productos": 115
+    },
+    {
+      "clave": "aisle_detail:2808:offset=0",
+      "archivo": "red/aisle-detail--2808--offset-0.json",
+      "metodo": "POST",
+      "url": "https://services.rappi.com.ar/api/web-gateway/web/dynamic/context/content/",
+      "capturado_at": "2026-10-08T01:39:16Z",
+      "app_version": "web_v1.223.2",
+      "run_id": "local-2026-10-08",
+      "sha256": "316e46397aaf1e256b9159bd84635e70fd7d9ce4117e74c7dd302631de58577a",
+      "redactado": true,
+      "productos": 57
+    },
+    {
+      "clave": "aisle_detail:2807:offset=0",
+      "archivo": "red/aisle-detail--2807--offset-0.json",
+      "metodo": "POST",
+      "url": "https://services.rappi.com.ar/api/web-gateway/web/dynamic/context/content/",
+      "capturado_at": "2026-10-08T01:39:17Z",
+      "app_version": "web_v1.223.2",
+      "run_id": "local-2026-10-08",
+      "sha256": "ac51ab0202a3ac63950d0b282b5e5ee2204f29511eea83d02353cf7508d79bd4",
+      "redactado": true,
+      "productos": 56
+    },
+    {
+      "clave": "aisle_detail:2806:offset=0",
+      "archivo": "red/aisle-detail--2806--offset-0.json",
+      "metodo": "POST",
+      "url": "https://services.rappi.com.ar/api/web-gateway/web/dynamic/context/content/",
+      "capturado_at": "2026-10-08T01:39:18Z",
+      "app_version": "web_v1.223.2",
+      "run_id": "local-2026-10-08",
+      "sha256": "085577b9959ebf50c2879a3ce48b82517b6a4ba740e22150323c0581980085d9",
+      "redactado": true,
+      "productos": 19
+    }
+  ]
 }
