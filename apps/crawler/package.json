@@ -7,5 +7,9 @@
     "@buscapromos/core": "*",
     "@buscapromos/db": "*",
     "@buscapromos/providers": "*"
+  },
+  "scripts": {
+    "corrida": "tsx src/main.ts",
+    "corrida:seca": "tsx src/seca.ts"
   }
 }
