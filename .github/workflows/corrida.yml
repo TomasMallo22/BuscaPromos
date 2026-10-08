@@ -1,0 +1,48 @@
+# La corrida de produccion: resuelve las direcciones nuevas, recorre cada tienda con
+# suscriptores, aplica precios y detecta. Ver docs/07-operacion.md.
+#
+# Dos disparos:
+#   - cron cada 30 minutos, en minutos "raros" (7 y 37): GitHub atrasa o saltea los schedules
+#     de :00 y :30. El cron solo corre en la branch por defecto (main).
+#   - workflow_dispatch: lo dispara la web al guardar una direccion, para que la primera
+#     busqueda no espere al cron (spec 001, 00-propuesta.md).
+name: corrida
+
+on:
+  schedule:
+    - cron: '7,37 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Si el disparo de la web llega mientras corre el cron, queda en cola: nunca dos corridas a la
+# vez sobre la misma tienda.
+concurrency:
+  group: corrida
+  cancel-in-progress: false
+
+env:
+  TZ: America/Argentina/Buenos_Aires
+
+jobs:
+  corrida:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      # El log de un repo publico es publico: la corrida solo imprime conteos. Nunca
+      # coordenadas, tokens ni mails (regla de oro 14).
+      - name: Corrida
+        run: npm run corrida
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          RAPPI_DEVICE_ID: ${{ secrets.RAPPI_DEVICE_ID }}
+          RAPPI_APP_VERSION: ${{ vars.RAPPI_APP_VERSION }}

@@ -6,7 +6,9 @@
 - **Dado** una direccion con lat/lng y ninguna corrida previa
 - **Cuando** corre `npm run corrida`
 - **Entonces** se resuelve la tienda turbo, se recorre el catalogo completo, todos los productos
-  entran como `nuevo`, y **no se genera ninguna alerta** (no hay historial contra que comparar)
+  entran como `nuevo`, y se escriben los hallazgos que no necesitan historial
+  (`precio_absurdo`, `descuento_extremo`, `nuevo_vs_pasillo`). Se ven en la web, pero **no se
+  notifica ninguno**: la primera corrida de una tienda no manda avisos
 
 ### E2 — Segunda corrida, sin cambios
 - **Dado** una tienda ya recorrida y ningun precio movido
@@ -95,6 +97,34 @@ Regla de oro 5. Un producto agotado no genera hallazgo aunque su precio sea absu
 ### E19 — Lista vacia
 - **Dado** un usuario que todavia no cargo nada
 - **Entonces** recibe por la red de seguridad: solo lo muy fuerte. Nunca silencio total
+
+## La direccion la carga cada usuario
+
+### E20 — Cargo mi direccion y veo ofertas
+- **Dado** un usuario sin direcciones
+- **Cuando** toca "Usar mi ubicacion", ajusta el pin, le pone "Casa" y guarda
+- **Entonces** se crea la fila en `direcciones`, se dispara `corrida.yml`, el feed dice "Buscando
+  tu tienda de Rappi" y se actualiza solo; en unos minutos muestra los hallazgos de la primera
+  corrida
+
+### E21 — Rappi no tiene Turbo en esa zona
+- **Entonces** la direccion queda marcada `sin_cobertura_at` y el feed lo dice. No se queda
+  "buscando" para siempre
+
+### E22 — Dos personas, la misma tienda
+- **Dado** que el dueño y su pareja cargan direcciones que resuelven a la misma tienda
+- **Entonces** hay **una** fila en `tiendas` y una sola corrida por turno; cada uno tiene su
+  suscripcion
+
+### E23 — Nadie ve la direccion de otro
+- **Entonces** `direcciones` solo se lee con el JWT de su dueño, y las coordenadas que
+  `tiendas` guarda para consultar a Rappi no se pueden leer con la clave publica (grant por
+  columna). Las coordenadas nunca aparecen en logs ni en el summary de Actions (regla de oro 14)
+
+### E24 — El disparo falla
+- **Cuando** GitHub no acepta el `workflow_dispatch` (token vencido, caida)
+- **Entonces** la direccion se guarda igual y el feed dice "buscando"; la toma el cron en la
+  proxima media hora. Guardar nunca falla por el disparo
 
 ## Escenarios de las reglas de oro
 

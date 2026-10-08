@@ -23,7 +23,9 @@
     "db:tipos": "supabase gen types typescript --local > packages/db/src/tipos.ts",
     "db:lint": "supabase db lint --level warning",
     "reglas:verificar": "tsx scripts/verificar-reglas.ts",
-    "fixtures:verificar": "tsx scripts/verificar-fixtures.ts"
+    "fixtures:verificar": "tsx scripts/verificar-fixtures.ts",
+    "corrida": "npm run corrida -w @buscapromos/crawler",
+    "corrida:seca": "npm run corrida:seca -w @buscapromos/crawler --"
   },
   "devDependencies": {
     "@types/node": "^22.7.5",

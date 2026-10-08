@@ -55,18 +55,32 @@ headers exactos.
 
 ### Migraciones
 
+**Renumeradas (2026-10-07).** El plan original las llamaba 0002 a 0006, pero la 0008 ya esta
+aplicada y hace `revoke all on all tables in schema public from anon, authenticated`: aplicadas
+en orden de archivo desde cero, una 0002 perderia sus grants al correr la 0008. Van despues.
+
 | Archivo | Que |
 |---|---|
-| `0002_catalogo.sql` | `proveedores`, `tiendas`, `productos_canonicos`, `productos` |
-| `0003_precios.sql` | `precios_actuales` + `precios_cambios` (append-only) |
-| `0004_aplicar_lote.sql` | `private.aplicar_lote_precios()` — changelog + snapshot + set de cambiados |
-| `0005_corridas.sql` | `corridas` con `grupos_fallidos`, `app_version` |
-| `0006_hallazgos.sql` | `hallazgos`, `alerta_estado`, `notificaciones` |
-| `0009_filtros.sql` | `suscripciones.productos_interes text[]` + `ratio_maximo_general numeric` |
-| `0010_invitaciones.sql` | `invitaciones(email, invitado_por, usada_at)` + trigger que rechaza el alta |
+| `0009_catalogo.sql` | `proveedores`, `tiendas`, `productos_canonicos`, `productos`; las FKs de `direcciones_tiendas` y `suscripciones`; `direcciones.sin_cobertura_at` |
+| `0010_precios.sql` | `precios_actuales` + `precios_cambios` (append-only) |
+| `0011_aplicar_lote.sql` | `public.aplicar_lote_precios()` — changelog + snapshot + set de cambiados. Solo `service_role` la ejecuta |
+| `0012_corridas.sql` | `corridas` con `grupos_fallidos`, `app_version`; `credenciales_proveedor` (token de invitado cacheado) |
+| `0013_hallazgos.sql` | `hallazgos`, `alerta_estado`, `notificaciones` |
+| `0014_filtros.sql` | `suscripciones.productos_interes text[]` + `ratio_maximo_general numeric` |
+| `0015_invitaciones.sql` | `invitaciones(email, invitado_por, usada_at)` + trigger que rechaza el alta |
 
-Las FKs de `direcciones_tiendas.tienda_id` y `suscripciones.tienda_id` se agregan en la 0002,
-cuando `tiendas` ya existe.
+`aplicar_lote_precios` vive en `public` y no en `private` porque el crawler la llama por RPC y
+PostgREST solo expone `public`. Lo que la protege es el `revoke execute ... from public, anon,
+authenticated`: solo `service_role` la puede llamar.
+
+**Lo que la web necesita leer y no puede calcular** (regla de oro 11) va como columna:
+`tiendas.primera_corrida_ok_at` y `tiendas.ultima_corrida_ok_at`, que escribe el crawler. Con
+eso el feed sabe si esta "buscando por primera vez" y en que dia del arranque ciego esta, sin
+abrir `corridas`, que sigue cerrada a `authenticated`.
+
+**`tiendas.lat_consulta` / `lng_consulta`** son las coordenadas que Rappi pide en cada request
+de la tienda. Salen de la direccion que la resolvio, redondeadas a 3 decimales (~100 m), y
+`authenticated` no las puede leer: el grant de `select` sobre `tiendas` es por columna.
 
 **Toda tabla nueva lleva RLS y grants en la misma migracion.** Cargá la skill `modelo-de-datos`.
 
@@ -98,6 +112,30 @@ hallazgos nuevos y no cerrados
 ```
 
 El `or` es el corazon: la red de seguridad **no depende** de la lista.
+
+### La direccion, de punta a punta
+
+```
+web: /direcciones/nueva          GPS + pin en Leaflet + etiqueta
+  -> insert en direcciones       con el JWT del usuario (RLS)
+  -> POST workflow_dispatch      corrida.yml, token de GitHub de un solo permiso (server-only)
+  -> redirect /feed              "Buscando tu tienda de Rappi", se refresca solo
+
+crawler (Actions):
+  1. direcciones activas con resuelta_at y sin_cobertura_at nulos
+       -> resolverTiendas(lat, lng)
+       -> upsert tiendas, insert direcciones_tiendas, upsert suscripciones
+       -> o sin_cobertura_at = now()
+  2. tiendas con alguna suscripcion activa -> corrida (recorrer, aplicar lotes, guarda, detectar)
+  3. tiendas.primera_corrida_ok_at / ultima_corrida_ok_at
+```
+
+`concurrency: corrida` en el workflow: si el disparo llega mientras corre el cron, queda en
+cola y no se pisan.
+
+El anti-spam de las capas 2 y 3 (re-alertar si bajo mas de 5%, cerrar con histeresis) es una
+funcion pura en `packages/core/src/deteccion/anti-spam.ts`. El crawler la aplica contra
+`alerta_estado`.
 
 ### `apps/web` — Next 15
 

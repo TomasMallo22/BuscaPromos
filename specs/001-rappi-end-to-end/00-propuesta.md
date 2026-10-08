@@ -55,11 +55,27 @@ Filtrar **que se recorre** romperia dos cosas:
 
 Recorrer todo cuesta lo mismo en minutos de Actions. **Se recorre todo, se avisa de lo tuyo.**
 
+### Cada usuario carga su direccion, y la primera busqueda arranca al guardarla (2026-10-07)
+
+El dueño probo el login y se encontro con "carga una direccion" sin forma de cargarla: *"no lo
+comparto, que se ponga la direccion y que empiece a tirar las ofertas"*. La pantalla de
+direcciones, que estaba en la 002, entra en esta spec.
+
+- **Como se carga:** boton "Usar mi ubicacion" (GPS del celular) y un mapa para ajustar el pin
+  (Leaflet + OpenStreetMap). Sin geocoding por texto: ver `docs/08-roadmap.md`.
+- **Quien habla con Rappi:** solo el buscador (`apps/crawler`, en Actions). La web guarda la
+  direccion y nada mas: no necesita permisos de escritura sobre `tiendas` ni la clave secreta.
+- **Cuando arranca:** al guardar, la web dispara el workflow `corrida.yml` con
+  `workflow_dispatch` (un token de GitHub de un solo permiso, del lado del servidor). La primera
+  busqueda empieza en un minuto y tarda 3 a 5. Despues sigue el cron cada 30 minutos.
+- **Que se ve en la primera busqueda:** los hallazgos que no necesitan historial
+  (`precio_absurdo`, `descuento_extremo`, `nuevo_vs_pasillo`), marcados "sin historial todavia".
+  Se ven en la web pero **no se notifican**: la primera corrida de una tienda no manda avisos,
+  para que nadie reciba 40 Telegrams el primer dia.
+
 ## Que queda afuera
 
-- La **pantalla** de direcciones: en esta spec la direccion se crea con
-  `npm run resolver-tiendas -- --lat --lng`. Eso respeta el requisito de que la direccion sea un
-  dato y no una constante, y deja la UI para la 002.
+- Editar o borrar una direccion desde la web: solo alta. Borrar va por SQL hasta la 002.
 - La pantalla para editar la lista de productos de interes: tambien 002. Aca se carga por SQL.
 - Cualquier proveedor que no sea Rappi.
 - El dashboard de corridas: spec 003.

@@ -6,6 +6,12 @@
     },
     {
       "path": "./packages/db"
+    },
+    {
+      "path": "./packages/providers"
+    },
+    {
+      "path": "./apps/crawler"
     }
   ]
 }
