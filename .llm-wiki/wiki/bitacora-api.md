@@ -71,3 +71,22 @@ Rappi" y pasa a ser un hecho fechado. La spec 001 arranca sobre terreno firme.
   se leyo igual con la tienda cerrada (`available: false`, `in_stock: true`).
 - Corrida completa de la 266872: **3.704 productos en 112 s, 0 grupos fallidos**, con 600 ms
   entre requests. 1.034 con precio tachado; el mayor descuento anunciado, 55%.
+
+## 2026-10-08 — Rappi: los supermercados usan la misma API, y la presentacion a veces miente
+
+**Sintoma:** ninguno; verificado antes de la spec 002.
+**Causa:** —
+**Arreglo:** `packages/providers/src/rappi/tiendas.ts` y `presentacionRappi`.
+**Evidencia:** sondas en vivo desde la zona del Obelisco, 23:00-00:30 ART:
+
+- De noche el router lista Jumbo (247105), Disco, Vea, Carrefour (127153), Carrefour Express,
+  Coto (130340), Dia (243771) y Farmacity, todos con `is_open: true`. El mismo
+  `dynamic/context/content` devuelve su catalogo con `store_type` y `parent_store_type` = el tipo.
+- Tamaño de catalogo: Jumbo 6.779, Disco 6.013, Vea 5.449, Carrefour 2.846, Carrefour Express
+  6.768, Coto 14.468, Dia 2.862, Farmacity 6.183.
+- `master_product_id` compartido: 54 gaseosas en comun entre Jumbo y Coto, 39 tambien en Turbo.
+- `corrida:seca` de Dia: 2.953 productos en 84 s. Aparecieron datos malos de Rappi:
+  "1 x 45261 L" en un vino (`quantity: 1.12`, `unit_type: l`) — corregido usando lo
+  estructurado; y "1 X 15 L" en aguas saborizadas con `quantity: 15` tambien — **sin arreglo**:
+  los dos campos dicen lo mismo. Chorizos "1 x 400 g" a $260 con `sale_type: U`: es el dato
+  publicado (el chorizo de marca Dia de 300 g estaba a $3.600); se reporta tal cual.

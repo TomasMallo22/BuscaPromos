@@ -28,7 +28,8 @@ env:
 jobs:
   corrida:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    # La primera pasada con Turbo y los 8 supermercados tarda ~35 minutos (spec 002).
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

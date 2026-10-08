@@ -28,3 +28,4 @@ export {
   type ProductoEvaluado,
 } from './deteccion/motor.js';
 export { debeCerrar, decidirAlerta, type AlertaVigente, type DecisionAlerta } from './deteccion/anti-spam.js';
+export { medianaOtrasTiendas } from './deteccion/mediana.js';

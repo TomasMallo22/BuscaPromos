@@ -65,3 +65,11 @@ No se discute, no se busca una via alternativa. El proyecto vale menos que eso.
 
 Es el criterio con el que se tomaron las decisiones tecnicas, escrito para no re-discutirlo.
 No reemplaza la opinion de un abogado.
+
+## Volumen con los supermercados de Rappi (spec 002, 2026-10-08)
+
+Al sumar los 8 supermercados de Rappi el volumen pasa de ~9.000 a ~26.000 requests por dia por
+zona: Turbo (~190 requests) cada 30 minutos y los supermercados (~57.000 productos entre todos)
+cada 4 horas. Siempre secuencial, con 600 ms entre requests, sin paralelizar. Es el cambio de
+mayor exposicion de ToS del proyecto hasta ahora; si aparecen 429, se baja la cadencia, no se
+agregan reintentos.

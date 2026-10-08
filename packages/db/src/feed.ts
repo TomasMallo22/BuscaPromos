@@ -31,6 +31,7 @@ export async function misDirecciones(c: ClienteUsuario): Promise<DireccionDelUsu
 
 export interface TiendaDelUsuario {
   readonly id: string;
+  readonly tipo: string;
   readonly idExterno: string;
   readonly nombre: string | null;
   readonly primeraCorridaOkAt: string | null;
@@ -41,10 +42,11 @@ export interface TiendaDelUsuario {
 export async function misTiendas(c: ClienteUsuario): Promise<TiendaDelUsuario[]> {
   const { data, error } = await c
     .from('tiendas')
-    .select('id, id_externo, nombre, primera_corrida_ok_at, ultima_corrida_ok_at');
+    .select('id, tipo, id_externo, nombre, primera_corrida_ok_at, ultima_corrida_ok_at');
   if (error) throw new Error(`No se pudieron leer tus tiendas: ${error.message}`);
   return data.map((t) => ({
     id: t.id,
+    tipo: t.tipo,
     idExterno: t.id_externo,
     nombre: t.nombre,
     primeraCorridaOkAt: t.primera_corrida_ok_at,
@@ -56,7 +58,7 @@ export interface ProductoEnFeed {
   readonly nombre: string;
   readonly presentacion: string | null;
   readonly imagenUrl: string | null;
-  readonly idExternoTienda: string;
+  readonly tienda: { readonly idExterno: string; readonly tipo: string; readonly nombre: string | null };
 }
 
 export interface HallazgoEnFeed extends ProductoEnFeed {
@@ -75,7 +77,7 @@ export async function hallazgosVigentes(c: ClienteUsuario, limite = 100): Promis
   const { data, error } = await c
     .from('hallazgos')
     .select(
-      'id, producto_id, regla, precio, precio_referencia, ratio, estado_oferta, detectado_at, productos(nombre, presentacion, imagen_url), tiendas(id_externo)',
+      'id, producto_id, regla, precio, precio_referencia, ratio, estado_oferta, detectado_at, productos(nombre, presentacion, imagen_url), tiendas(id_externo, tipo, nombre)',
     )
     .is('cerrado_at', null)
     .order('ratio', { ascending: true, nullsFirst: false })
@@ -96,7 +98,7 @@ export async function hallazgosVigentes(c: ClienteUsuario, limite = 100): Promis
             nombre: h.productos.nombre,
             presentacion: h.productos.presentacion,
             imagenUrl: h.productos.imagen_url,
-            idExternoTienda: h.tiendas.id_externo,
+            tienda: { idExterno: h.tiendas.id_externo, tipo: h.tiendas.tipo, nombre: h.tiendas.nombre },
           },
         ]
       : [],
@@ -117,7 +119,7 @@ export interface DescuentoAnunciado extends ProductoEnFeed {
 export async function descuentosAnunciados(c: ClienteUsuario, limite = 30): Promise<DescuentoAnunciado[]> {
   const { data, error } = await c
     .from('precios_actuales')
-    .select('producto_id, precio, precio_lista, ratio_lista, productos(nombre, presentacion, imagen_url), tiendas(id_externo)')
+    .select('producto_id, precio, precio_lista, ratio_lista, productos(nombre, presentacion, imagen_url), tiendas(id_externo, tipo, nombre)')
     .eq('en_stock', true)
     .eq('promo_kind', 'descuento_lista')
     .not('ratio_lista', 'is', null)
@@ -135,7 +137,7 @@ export async function descuentosAnunciados(c: ClienteUsuario, limite = 30): Prom
             nombre: p.productos.nombre,
             presentacion: p.productos.presentacion,
             imagenUrl: p.productos.imagen_url,
-            idExternoTienda: p.tiendas.id_externo,
+            tienda: { idExterno: p.tiendas.id_externo, tipo: p.tiendas.tipo, nombre: p.tiendas.nombre },
           },
         ]
       : [],

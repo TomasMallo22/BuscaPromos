@@ -3,17 +3,20 @@
  * primera corrida, SIN tocar la base. Para probar el cliente de Rappi y el motor juntos antes
  * de mergear un cambio (docs/07-operacion.md).
  *
- *   npm run corrida:seca                       # la Turbo del Obelisco, un punto publico
- *   npm run corrida:seca -- 266872 -34.6 -58.38 # otra tienda: id, lat, lng de la TIENDA
+ *   npm run corrida:seca            # la Turbo del Obelisco, un punto publico
+ *   npm run corrida:seca -- coto    # otra tienda de TIENDAS_RAPPI, en la misma zona
  *
- * No le pases la ubicacion de tu casa: la salida va a la consola, y en Actions al log publico.
+ * Siempre en el Obelisco: la salida va a la consola, y en Actions al log publico.
  */
 import { randomUUID } from 'node:crypto';
 import { indicePasillo, referenciaPasillo, REGISTRY } from '@buscapromos/core';
-import { ClienteRed, crearRappi, promoExcluida, type ProductoNormalizado } from '@buscapromos/providers';
-import { detectarProducto, subPasilloDe } from './planificar.js';
+import { ClienteRed, crearRappi, promoExcluida, TIENDAS_RAPPI, type ProductoNormalizado } from '@buscapromos/providers';
+import { detectarProducto, presentacionComparable, subPasilloDe } from './planificar.js';
 
-const [idTienda = '266872', lat = '-34.60372', lng = '-58.38159'] = process.argv.slice(2);
+const OBELISCO = { lat: -34.60372, lng: -58.38159 };
+/** De noche el router no lista la Turbo: se usa la conocida (bitacora-api, 2026-10-07). */
+const TURBO_OBELISCO = { tipo: 'turbo', idExterno: '266872', nombre: 'Rappi Turbo', consulta: OBELISCO };
+const tipo = process.argv[2] ?? 'turbo';
 const proveedor = crearRappi({
   deviceId: process.env['RAPPI_DEVICE_ID'] || randomUUID(),
   appVersion: process.env['RAPPI_APP_VERSION'] || 'web_v1.223.2',
@@ -25,10 +28,16 @@ const ctx = {
   credenciales: { leer: async () => token, guardar: async (t: string, e: Date) => void (token = { token: t, expiraAt: e }) },
 };
 
+const tienda = (await proveedor.resolverTiendas(OBELISCO, ctx)).find((t) => t.tipo === tipo) ?? (tipo === 'turbo' ? TURBO_OBELISCO : null);
+if (!tienda) {
+  console.error(`No hay "${tipo}" en el Obelisco ahora. Tipos: ${TIENDAS_RAPPI.map((t) => t.tipo).join(', ')}`);
+  process.exit(2);
+}
+console.log(`${tienda.nombre} ${tienda.idExterno}`);
 const inicio = Date.now();
 const productos: ProductoNormalizado[] = [];
 const fallidos: string[] = [];
-for await (const lote of proveedor.recorrer({ idExterno: idTienda, nombre: null, consulta: { lat: Number(lat), lng: Number(lng) } }, ctx)) {
+for await (const lote of proveedor.recorrer(tienda, ctx)) {
   if (lote.falloMotivo) fallidos.push(`${lote.categoriaPath.join(' › ')} (${lote.falloMotivo})`);
   productos.push(...lote.productos);
   process.stdout.write(`\r${productos.length} productos…`);
@@ -39,7 +48,7 @@ for (const f of fallidos) console.log(`  fallo: ${f}`);
 const indice = indicePasillo(
   productos.map((p) => ({
     subPasillo: subPasilloDe(p.categoriaPath, pol.nivelAgrupacionPasillo),
-    presentacion: p.presentacion,
+    presentacion: presentacionComparable(p),
     precio: p.precio,
     promoExcluida: promoExcluida(p.promoKind, pol),
     enStock: p.enStock,
@@ -55,7 +64,7 @@ const hallazgos = productos.flatMap((p) => {
     promoExcluida: excluida,
     enStock: p.enStock,
     historial: [{ ts: ahora, precio: p.precio, promoExcluida: excluida, enStock: p.enStock }],
-    pasillo: referenciaPasillo(indice, { subPasillo, presentacion: p.presentacion, precio: p.precio, promoExcluida: excluida, enStock: p.enStock }),
+    pasillo: referenciaPasillo(indice, { subPasillo, presentacion: presentacionComparable(p), precio: p.precio, promoExcluida: excluida, enStock: p.enStock }),
     ahora,
   });
   return disparos.map((d) => ({ p, d }));
@@ -80,7 +89,7 @@ for (const p of productos
 console.log(`\nMas baratos contra su gondola (nuevo_vs_pasillo dispara en <= ${REGISTRY.nuevo_vs_pasillo.umbral}):`);
 const contraGondola = productos.flatMap((p) => {
   const excluida = promoExcluida(p.promoKind, pol);
-  const ref = referenciaPasillo(indice, { subPasillo: subPasilloDe(p.categoriaPath, pol.nivelAgrupacionPasillo), presentacion: p.presentacion, precio: p.precio, promoExcluida: excluida, enStock: p.enStock });
+  const ref = referenciaPasillo(indice, { subPasillo: subPasilloDe(p.categoriaPath, pol.nivelAgrupacionPasillo), presentacion: presentacionComparable(p), precio: p.precio, promoExcluida: excluida, enStock: p.enStock });
   return ref && p.enStock && !excluida ? [{ p, ratio: p.precio / ref.referencia, ref }] : [];
 });
 for (const { p, ratio, ref } of contraGondola.sort((a, b) => a.ratio - b.ratio).slice(0, 8)) {

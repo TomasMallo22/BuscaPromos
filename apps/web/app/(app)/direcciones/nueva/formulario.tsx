@@ -150,7 +150,7 @@ export function FormularioDireccion() {
       </button>
 
       <p className="text-xs text-texto-suave">
-        Tu dirección la ves solo vos. Se usa para saber qué tienda de Rappi te corresponde.
+        Tu dirección la ves solo vos. Se usa para saber qué tiendas de Rappi te llegan.
       </p>
     </form>
   );

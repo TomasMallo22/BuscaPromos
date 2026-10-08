@@ -3,9 +3,9 @@ import Link from 'next/link';
 import { crearClienteServidor } from '@/lib/supabase/servidor';
 
 const ESTADO: Record<DireccionDelUsuario['estado'], string> = {
-  buscando_tienda: 'Buscando su tienda de Rappi',
+  buscando_tienda: 'Buscando sus tiendas de Rappi',
   resuelta: 'Buscando ofertas',
-  sin_cobertura: 'Rappi Turbo no llega acá',
+  sin_cobertura: 'Rappi no llega acá',
 };
 
 export default async function PaginaDirecciones() {

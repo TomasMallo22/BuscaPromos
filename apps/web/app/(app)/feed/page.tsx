@@ -59,23 +59,23 @@ export default async function PaginaFeed() {
       {esperando && <AutoRefresco cadaSegundos={20} />}
 
       {buscandoTienda.length > 0 && (
-        <Aviso titulo={`Buscando tu tienda de Rappi para ${nombres(buscandoTienda)}`}>
-          <p>
-            El buscador arranca en un minuto y tarda unos minutos más. Si es de noche, Rappi Turbo puede estar
-            cerrado: lo volvemos a intentar cada media hora, y a la mañana lo encuentra.
-          </p>
+        <Aviso titulo={`Buscando tus tiendas de Rappi para ${nombres(buscandoTienda)}`}>
+          <p>El buscador arranca en un minuto: busca Rappi Turbo y los supermercados de Rappi que llegan a esa dirección.</p>
         </Aviso>
       )}
 
       {sinCobertura.length > 0 && (
-        <Aviso titulo={`Rappi Turbo no llega a ${nombres(sinCobertura)}`}>
-          <p>Lo intentamos durante un día y no apareció ninguna tienda Turbo para esa dirección.</p>
+        <Aviso titulo={`Rappi no llega a ${nombres(sinCobertura)}`}>
+          <p>Lo intentamos durante un día y no apareció ninguna de las tiendas que seguimos para esa dirección.</p>
         </Aviso>
       )}
 
       {primeraVez.length > 0 && buscandoTienda.length === 0 && (
         <Aviso titulo="Buscando por primera vez">
-          <p>Estamos recorriendo todo el catálogo de tu Rappi Turbo. Tarda unos minutos; esta página se actualiza sola.</p>
+          <p>
+            Estamos recorriendo {primeraVez.map((t) => t.nombre ?? t.tipo).join(', ')}. La primera vez tarda: los
+            supermercados tienen miles de productos. Esta página se actualiza sola.
+          </p>
         </Aviso>
       )}
 
@@ -85,15 +85,19 @@ export default async function PaginaFeed() {
             Juntando historial, día {dia} de {diasNecesarios}
           </p>
           <p className="mt-1 text-texto-suave">
-            Para saber si un precio es de verdad más bajo que el de siempre necesitamos verlo unos días. Por ahora solo
-            detectamos errores de precio y productos rarísimamente baratos para su góndola.
+            Para saber si un precio es de verdad más bajo que el de siempre necesitamos verlo unos días. Mientras tanto
+            detectamos errores de precio, productos rarísimamente baratos para su góndola, y lo que está a menos de la
+            mitad que en tus otras tiendas.
           </p>
         </div>
       )}
 
       {recorridas.length > 0 && (
         <section className="space-y-3">
-          <h2 className="font-semibold">Detectado por BuscaPromos</h2>
+          <div>
+            <h2 className="font-semibold">Detectado por BuscaPromos</h2>
+            <p className="mt-1 text-sm text-texto-suave">En {recorridas.map((t) => t.nombre ?? t.tipo).join(', ')}.</p>
+          </div>
           {porProducto.length > 0 ? (
             porProducto.map((h) => <TarjetaHallazgo key={h.id} h={h} />)
           ) : (
@@ -114,7 +118,7 @@ export default async function PaginaFeed() {
             </p>
           </div>
           {descuentos.map((d) => (
-            <TarjetaDescuento key={`${d.idExternoTienda}-${d.productoId}`} d={d} />
+            <TarjetaDescuento key={d.productoId} d={d} />
           ))}
         </section>
       )}

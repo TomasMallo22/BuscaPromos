@@ -24,6 +24,12 @@ proveedor**. Imprime los hallazgos en el `GITHUB_STEP_SUMMARY`.
 
 **El cron solo corre en la branch por defecto**, que tiene que ser `main`.
 
+## Cada tienda a su ritmo (spec 002)
+
+El cron corre cada 30 minutos, pero cada corrida recorre solo las tiendas a las que les toca:
+Turbo cada 30 minutos, los supermercados cada 4 horas (`TIENDAS_RAPPI`). Las direcciones se
+re-consultan cada hora, asi una tienda que no estaba (Turbo de noche) se suma sola.
+
 ## Rappi de noche
 
 El router de tiendas no lista la Turbo cuando esta cerrada (verificado el 2026-10-08 a las

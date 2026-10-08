@@ -4,10 +4,11 @@ _Ultima actualizacion: 2026-10-07_
 
 ## Donde estamos
 
-**Spec 001 casi entera** (2026-10-08). Cada usuario carga su direccion desde la web (GPS +
-mapa), la web dispara `corrida.yml`, el buscador resuelve la tienda Turbo, recorre el catalogo,
-guarda el historial y detecta. Falta que el dueño cargue los secrets (tarea 19) para la primera
-corrida real, y despues Telegram (tarea 23).
+**Spec 002 (supermercados de Rappi) implementada** (2026-10-08). Ademas de Turbo, el buscador
+sigue Jumbo, Disco, Vea, Carrefour, Carrefour Express, Coto, Dia y Farmacity: cada direccion se
+re-consulta cada hora, Turbo se recorre cada 30 minutos y los supermercados cada 4 horas, y
+`vs_otras_tiendas` esta encendida (identidad `rappi_master`). Falta la primera pasada real con
+supermercados (tarea 10) y despues Telegram.
 
 ## Hecho
 

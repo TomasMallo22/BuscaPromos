@@ -112,6 +112,17 @@ paginacion y la normalizacion. Ver [`09-fixtures-y-probe.md`](09-fixtures-y-prob
 
 `BASE = https://services.rappi.com.ar`.
 
+**No es una sola tienda** (spec 002, 2026-10-08): Turbo y los supermercados que Rappi vende
+(Jumbo, Disco, Vea, Carrefour, Carrefour Express, Coto, Dia, Farmacity) usan el mismo endpoint.
+La lista, con la cadencia de cada uno, vive en `packages/providers/src/rappi/tiendas.ts`. En el
+request cambia `state.store_type` (el tipo) y `state.parent_store_type` (`turbo_home` en Turbo, el
+mismo tipo en cada supermercado). `master_product_id` es el mismo entre tiendas.
+
+**La presentacion.** Rappi manda el texto (`presentation`) y la cantidad estructurada
+(`quantity` + `unit_type`, POR UNIDAD). Gana el texto si coincide o si es un multipack explicito
+("4 x 237 mL"); si no, lo estructurado ("1 x 45261 L" en un vino de 1,12 L). Lo que se vende por
+peso (`sale_type` distinto de `U`) no entra al indice de gondola. Ver `presentacionRappi`.
+
 | Paso | Request |
 |---|---|
 | 1 | `GET /api/rocket/v2/guest/passport/` → `{"token"}` |

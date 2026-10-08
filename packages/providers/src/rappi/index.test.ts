@@ -8,14 +8,14 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { ClienteFixtures, ErrorHttp, type ClienteHttp, type PedidoHttp } from '../cliente-http.js';
 import type { AlmacenCredenciales, LoteProductos, TiendaResuelta } from '../contrato.js';
-import { productos, promoKindRappi, tiendaTurbo } from './extraer.js';
+import { presentacionRappi, productos, promoKindRappi, tiendasRappi } from './extraer.js';
 import { crearRappi } from './index.js';
 
 const FIXTURES = resolve(dirname(fileURLToPath(import.meta.url)), '../../../../fixtures/rappi');
 const leer = (archivo: string): unknown => JSON.parse(readFileSync(resolve(FIXTURES, 'red', archivo), 'utf8'));
 
 const rappi = crearRappi({ deviceId: '00000000-0000-4000-8000-000000000000', appVersion: 'web_v1.223.2' });
-const tienda: TiendaResuelta = { idExterno: '266872', nombre: 'Rappi Turbo', consulta: { lat: -34.6, lng: -58.38 } };
+const tienda: TiendaResuelta = { tipo: 'turbo', idExterno: '266872', nombre: 'Rappi Turbo', consulta: { lat: -34.6, lng: -58.38 } };
 
 /** Un token vigente: los fixtures no tienen passport ni guest, y no hacen falta. */
 const credencialesVigentes = (): AlmacenCredenciales & { guardados: number } => ({
@@ -92,6 +92,42 @@ describe('productos', () => {
   });
 });
 
+describe('presentacionRappi — el texto contra los campos estructurados (spec 002)', () => {
+  // Casos reales: Turbo 266872 y Dia 243771, 2026-10-08.
+  it('coinciden: el texto', () => {
+    expect(presentacionRappi('1 x 630 mL', 630, 'ml')).toBe('1 x 630 mL');
+  });
+  it('multipack explicito: el texto, porque quantity es por unidad', () => {
+    expect(presentacionRappi('4 x 237 mL', 237, 'ml')).toBe('4 x 237 mL');
+  });
+  it('texto disparatado ("1 x 45261 L" de un vino de 1,12 L): lo estructurado', () => {
+    expect(presentacionRappi('1 x 45261 L', 1.12, 'l')).toBe('1.12 l');
+  });
+  it('un "15 L" que es 1,5 L no pasa por multipack: no dice "10 x"', () => {
+    expect(presentacionRappi('1 X 15 L', 1.5, 'l')).toBe('1.5 l');
+  });
+  it('sin texto: lo estructurado', () => {
+    expect(presentacionRappi('', 354, 'ml')).toBe('354 ml');
+  });
+  it('unidades que no son peso ni volumen: el texto tal cual (el core las descarta)', () => {
+    expect(presentacionRappi('1 Und', 1, 'und')).toBe('1 Und');
+  });
+});
+
+describe('productos vendidos por peso (spec 002)', () => {
+  it('sale_type distinto de U: seVendePorPeso, para que no entre al indice de gondola', () => {
+    const [chorizo] = productos(
+      { product_id: 1, name: 'Chorizo Parrillero', price: 260, in_stock: true, presentation: '1 x 400 g', quantity: 400, unit_type: 'gr', sale_type: 'WB' },
+      [],
+    );
+    expect(chorizo?.seVendePorPeso).toBe(true);
+  });
+  it('sale_type U o ausente: no', () => {
+    const [p] = productos({ product_id: 1, name: 'x', price: 1, in_stock: true, sale_type: 'U' }, []);
+    expect(p?.seVendePorPeso).toBe(false);
+  });
+});
+
 describe('promoKindRappi', () => {
   it('tope de 1 unidad con oferta global es la promo de cuenta nueva', () => {
     expect(promoKindRappi({ price: 50, real_price: 100, has_global_offers: true, global_offer_max_quantity: 1 })).toBe(
@@ -108,7 +144,7 @@ describe('promoKindRappi', () => {
   });
 });
 
-describe('tiendaTurbo', () => {
+describe('tiendasRappi', () => {
   // La forma del router verificada el 2026-10-08: grupos con `suboptions`, tiendas en `stores`.
   const router = (tiendas: Array<{ store_type: string; store_id: string }>) => [
     { store_type: 'restaurant', stores: [{ store_type: 'restaurant', store_id: '135027' }] },
@@ -118,16 +154,51 @@ describe('tiendaTurbo', () => {
     },
   ];
 
-  it('de dia: encuentra la Turbo', () => {
-    expect(tiendaTurbo(router([{ store_type: 'turbo_express_nc', store_id: '220673' }, { store_type: 'turbo', store_id: '266872' }]))).toEqual({
-      idExterno: '266872',
-      lat: -34.61,
-      lng: -58.38,
-    });
+  it('de dia: Turbo y los supermercados de la lista, en el orden de la lista', () => {
+    const r = router([
+      { store_type: 'coto', store_id: '130340' },
+      { store_type: 'turbo_express_nc', store_id: '220673' },
+      { store_type: 'turbo', store_id: '266872' },
+      { store_type: 'leocan_market_nc', store_id: '1' },
+      { store_type: 'jumbo', store_id: '247105' },
+    ]);
+    expect(tiendasRappi(r)).toEqual([
+      { tipo: 'turbo', idExterno: '266872', lat: -34.61, lng: -58.38 },
+      { tipo: 'jumbo', idExterno: '247105', lat: -34.61, lng: -58.38 },
+      { tipo: 'coto', idExterno: '130340', lat: -34.61, lng: -58.38 },
+    ]);
   });
 
-  it('de noche: solo esta Rappi Express, que NO es la Turbo', () => {
-    expect(tiendaTurbo(router([{ store_type: 'turbo_express_nc', store_id: '220673' }]))).toBeNull();
+  it('de noche: sin Turbo, pero con los supermercados (E1 de la spec 002)', () => {
+    const r = router([
+      { store_type: 'turbo_express_nc', store_id: '220673' },
+      { store_type: 'dia', store_id: '243771' },
+    ]);
+    expect(tiendasRappi(r).map((t) => t.tipo)).toEqual(['dia']);
+  });
+
+  it('Rappi Express no es la Turbo, y una tienda chica no esta en la lista', () => {
+    expect(tiendasRappi(router([{ store_type: 'turbo_express_nc', store_id: '220673' }, { store_type: 'leocan_market_nc', store_id: '1' }]))).toEqual([]);
+  });
+});
+
+describe('recorrer un supermercado', () => {
+  it('pide con store_type y parent_store_type del super, no los de Turbo', async () => {
+    const cuerpos: unknown[] = [];
+    const http: ClienteHttp = {
+      async pedirJson<T>(p: PedidoHttp): Promise<T | null> {
+        cuerpos.push(p.body);
+        return { data: [{ name: 'aisles_icons_carousel', resource: { aisle_icons: [] } }] } as T;
+      },
+    };
+    const coto: TiendaResuelta = { tipo: 'coto', idExterno: '130340', nombre: 'Coto', consulta: { lat: -34.6, lng: -58.38 } };
+    for await (const _ of rappi.recorrer(coto, { http, credenciales: credencialesVigentes() })) void _;
+    expect(cuerpos[0]).toMatchObject({ stores: [130340], state: { store_type: 'coto', parent_store_type: 'coto' } });
+  });
+
+  it('cada tipo tiene su cadencia: Turbo 30 minutos, supermercados 4 horas', () => {
+    expect(rappi.cadenciaMinutos('turbo')).toBe(30);
+    expect(rappi.cadenciaMinutos('coto')).toBe(240);
   });
 });
 
