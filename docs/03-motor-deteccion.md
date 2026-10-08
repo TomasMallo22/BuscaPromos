@@ -51,7 +51,8 @@ Clasifica el precio actual en `real` | `inflado` | `sin_historial`. Es la pieza 
 ```
 actual = filas[ultima].precio
 i = ultima
-mientras i > 0 y |filas[i-1].precio - actual| / actual <= 0.02:   <- colapsa reajustes de +-2%
+mientras i > 0 y actual > 0 y |filas[i-1].precio - actual| / actual <= 0.02:   <- colapsa +-2%;
+                                                              actual > 0 evita dividir por cero
     i -= 1
 desde = filas[i].ts
 
