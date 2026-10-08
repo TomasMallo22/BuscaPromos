@@ -12,17 +12,17 @@ contenedor ya esta abierta (bloqueo B1 cerrado), asi que tambien se puede iterar
 | 5 | `deteccion/pasillo.ts` + tests — **el hazard de `floor(n/10)`** | no | ✅ |
 | 6 | `deteccion/motor.ts` + tests — la estructura de `check()` con el `else if` | no | ✅ |
 | 7 | `npm run reglas:verificar` en verde con el registry real | no | ✅ |
-| 8 | Migraciones 0009–0013 (catalogo, precios, `aplicar_lote`, corridas, hallazgos) | no | ⏳ |
-| 9 | `packages/core/src/deteccion/anti-spam.ts` + tests (capas 2 y 3) | no | ⏳ |
-| 10 | `packages/providers`: contrato, `cliente-http` (red y fixtures) | no | ⏳ |
-| 11 | `providers/rappi`: politicas, los 4 pasos, walk con duck-test | no | ⏳ |
-| 12 | Capturar fixtures reales (Obelisco), redactar, tests de parsing | **si** | ⏳ |
-| 13 | `db:tipos` + funciones de acceso en `packages/db` (web y crawler) | no | ⏳ |
-| 14 | `apps/crawler`: resolver direcciones pendientes | **si** | ⏳ |
-| 15 | `apps/crawler`: corrida con guarda del 50% + piso de 100, deteccion sobre los cambiados | **si** | ⏳ |
-| 16 | `corrida.yml` (cron 30 min + `workflow_dispatch`, `concurrency`) y `corrida-seca.yml` | no | ⏳ |
-| 17 | Web: `/direcciones/nueva` con GPS + Leaflet, guardar + disparar el workflow | no | ⏳ |
-| 18 | Web: feed con los estados (buscando, sin cobertura, juntando historial) y las cards | no | ⏳ |
+| 8 | Migraciones 0009–0013 (catalogo, precios, `aplicar_lote`, corridas, hallazgos) | no | ✅ |
+| 9 | `packages/core/src/deteccion/anti-spam.ts` + tests (capas 2 y 3) | no | ✅ |
+| 10 | `packages/providers`: contrato, `cliente-http` (red y fixtures) | no | ✅ |
+| 11 | `providers/rappi`: politicas, los 4 pasos, walk con duck-test | no | ✅ |
+| 12 | Capturar fixtures reales (Obelisco), redactar, tests de parsing | **si** | ✅ |
+| 13 | `db:tipos` + funciones de acceso en `packages/db` (web y crawler) | no | ✅ |
+| 14 | `apps/crawler`: resolver direcciones pendientes | **si** | ✅ |
+| 15 | `apps/crawler`: corrida con guarda del 50% + piso de 100, deteccion sobre los cambiados | **si** | ✅ |
+| 16 | `corrida.yml` (cron 30 min + `workflow_dispatch`, `concurrency`); la corrida seca quedo como comando local (`npm run corrida:seca`) | no | ✅ |
+| 17 | Web: `/direcciones/nueva` con GPS + Leaflet, guardar + disparar el workflow | no | ✅ |
+| 18 | Web: feed con los estados (buscando, sin cobertura, juntando historial) y las cards | no | ✅ |
 | 19 | Secrets de Actions y token de GitHub en Vercel | — | ⏳ dueño |
 | 20 | Primera corrida real de punta a punta desde la web | **si** | ⏳ |
 | 21 | Tests de RLS **con dos JWT reales** | no | ⏳ |

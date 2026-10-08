@@ -12,6 +12,28 @@
 `corrida-seca.yml` es la que se corre **antes de mergear cualquier cambio al cliente de un
 proveedor**. Imprime los hallazgos en el `GITHUB_STEP_SUMMARY`.
 
+## Los secrets de `corrida.yml`
+
+| Donde | Nombre | Que |
+|---|---|---|
+| GitHub → Settings → Secrets → Actions | `SUPABASE_URL` | `https://yqfupeqgjibtfvgazvqw.supabase.co` |
+| idem | `SUPABASE_SERVICE_ROLE_KEY` | la clave **secreta** de Supabase (`sb_secret_...`) |
+| idem | `RAPPI_DEVICE_ID` | un uuid4 **estable**, generado una vez |
+| GitHub → Settings → Variables → Actions | `RAPPI_APP_VERSION` | opcional; si falta, `web_v1.223.2` |
+| Vercel → Environment Variables | `GITHUB_TOKEN_CORRIDA` | token fine-grained: solo este repo, permiso *Actions: read and write* |
+
+**El cron solo corre en la branch por defecto**, que tiene que ser `main`.
+
+## Rappi de noche
+
+El router de tiendas no lista la Turbo cuando esta cerrada (verificado el 2026-10-08 a las
+22:37 ART: solo aparece "Rappi Express", `turbo_express_nc`, que es otra tienda). El catalogo
+de una tienda ya conocida se lee igual. Consecuencias:
+
+- Una direccion cargada de noche queda "buscando tu tienda" hasta que Turbo abre. El crawler
+  la reintenta en cada corrida y recien la marca sin cobertura despues de 24 horas.
+- Las corridas nocturnas de tiendas ya resueltas funcionan normalmente.
+
 ## Cadencia y presupuesto de minutos
 
 Con repo **publico**, Actions es gratis e ilimitado y la cadencia es libre (cada 15-30 min).

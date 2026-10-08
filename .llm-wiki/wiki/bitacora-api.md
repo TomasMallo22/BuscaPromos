@@ -54,3 +54,20 @@ Livra Agua Saborizada Con Gas Citrus       $1583.1   lista $1759   stock=True  p
 
 Lo que esto cambia: `docs/04-contrato-proveedores.md` deja de ser "lo que creemos que devuelve
 Rappi" y pasa a ser un hecho fechado. La spec 001 arranca sobre terreno firme.
+
+## 2026-10-08 — Rappi: paginacion de una sola pagina, y la Turbo desaparece de noche
+
+**Sintoma:** ninguno; dos comportamientos descubiertos al capturar los fixtures.
+**Causa:** —
+**Arreglo:** contemplados en `packages/providers/src/rappi/` desde el primer commit.
+**Evidencia:** capturas de `fixtures/rappi/red/` (tienda 266872, pasillo Bebidas) y
+`npm run corrida:seca` en vivo:
+
+- `aisle_detail` con `limit: 50` devuelve **el sub-pasillo entero** (Gaseosas: 106 productos en
+  la primera pagina) y responde **204** a `offset: 50`. Se pagina hasta tener `product_count` o
+  recibir un 204.
+- A las 22:37 ART el stores-router **no lista ningun nodo `store_type: 'turbo'`**; solo
+  "Rappi Express" (`turbo_express_nc`, store 220673), que es otra tienda. El catalogo de la 266872
+  se leyo igual con la tienda cerrada (`available: false`, `in_stock: true`).
+- Corrida completa de la 266872: **3.704 productos en 112 s, 0 grupos fallidos**, con 600 ms
+  entre requests. 1.034 con precio tachado; el mayor descuento anunciado, 55%.

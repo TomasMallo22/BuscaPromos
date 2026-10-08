@@ -12,6 +12,7 @@ import type {
 } from '../contrato.js';
 import { pasillos, productos, subPasillos, tiendaTurbo, type Grupo } from './extraer.js';
 import { POLITICAS_RAPPI, SUBPASILLOS_VIDRIERA } from './politicas.js';
+import { urlProductoRappi } from './url.js';
 
 const BASE = 'https://services.rappi.com.ar';
 const URL_CONTENIDO = `${BASE}/api/web-gateway/web/dynamic/context/content/`;
@@ -191,8 +192,7 @@ export function crearRappi(config: ConfigRappi): Proveedor {
       }
     },
 
-    urlProducto: (p, t) =>
-      `https://www.rappi.com.ar/tiendas/${t.idExterno}-turbo/s?term=${encodeURIComponent(p.nombre)}`,
+    urlProducto: (p, t) => urlProductoRappi(p.nombre, t.idExterno),
 
     claveCanonica: (p) => {
       if (p.ean) return { clave: `ean:${p.ean}`, origen: 'ean' };

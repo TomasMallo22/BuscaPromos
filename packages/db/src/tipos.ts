@@ -4,7 +4,7 @@
  *   npm run db:tipos
  *
  * Generado el 2026-10-07 contra el proyecto `yqfupeqgjibtfvgazvqw` (sa-east-1), con las
- * migraciones 0001 y 0007 a 0013 aplicadas. Si cambiás el esquema, regeneralo y commitealo:
+ * migraciones 0001 y 0007 a 0014 aplicadas. Si cambiás el esquema, regeneralo y commitealo:
  * es lo que hace que un cambio de columna rompa la compilacion del crawler, de la web y de
  * `packages/db` a la vez, en vez de fallar en runtime.
  */
@@ -409,6 +409,7 @@ export type Database = {
           precio_lista: number | null
           producto_id: string
           promo_kind: Database["public"]["Enums"]["promo_kind"]
+          ratio_lista: number | null
           stock: number | null
           tienda_id: string
           visto_at: string
@@ -420,6 +421,7 @@ export type Database = {
           precio_lista?: number | null
           producto_id: string
           promo_kind?: Database["public"]["Enums"]["promo_kind"]
+          ratio_lista?: never
           stock?: number | null
           tienda_id: string
           visto_at: string
@@ -431,6 +433,7 @@ export type Database = {
           precio_lista?: number | null
           producto_id?: string
           promo_kind?: Database["public"]["Enums"]["promo_kind"]
+          ratio_lista?: never
           stock?: number | null
           tienda_id?: string
           visto_at?: string

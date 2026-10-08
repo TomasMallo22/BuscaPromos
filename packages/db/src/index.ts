@@ -21,3 +21,15 @@ export { Constants } from './tipos.js';
 
 export type { ClienteUsuario } from './usuarios.js';
 export { contarDireccionesActivas, obtenerPerfil } from './usuarios.js';
+export {
+  crearDireccion,
+  descuentosAnunciados,
+  hallazgosVigentes,
+  misDirecciones,
+  misTiendas,
+  type DescuentoAnunciado,
+  type DireccionDelUsuario,
+  type HallazgoEnFeed,
+  type ResultadoNuevaDireccion,
+  type TiendaDelUsuario,
+} from './feed.js';

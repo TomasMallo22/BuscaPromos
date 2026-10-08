@@ -9,7 +9,10 @@ export default function LayoutApp({ children }: { children: ReactNode }) {
         <Link href="/feed" className="flex h-12 items-center font-semibold tracking-tight">
           BuscaPromos
         </Link>
-        <nav>
+        <nav className="flex">
+          <Link href="/direcciones" className="flex h-12 items-center px-2 text-sm text-texto-suave">
+            Direcciones
+          </Link>
           <Link href="/ajustes" className="flex h-12 items-center px-2 text-sm text-texto-suave">
             Ajustes
           </Link>

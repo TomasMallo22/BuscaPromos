@@ -4,11 +4,20 @@ _Ultima actualizacion: 2026-10-07_
 
 ## Donde estamos
 
-**Spec 000 (andamiaje)**: casi cerrada; lo que falta depende del dueño (Vercel, Resend) o de
-la base local (tests de RLS). **Spec 001**: el motor de deteccion en `packages/core` esta hecho
-y probado (tareas 1 a 7). Sigue la base de datos (tarea 8 en adelante).
+**Spec 001 casi entera** (2026-10-08). Cada usuario carga su direccion desde la web (GPS +
+mapa), la web dispara `corrida.yml`, el buscador resuelve la tienda Turbo, recorre el catalogo,
+guarda el historial y detecta. Falta que el dueño cargue los secrets (tarea 19) para la primera
+corrida real, y despues Telegram (tarea 23).
 
 ## Hecho
+
+- **Spec 001, tareas 8 a 18** (2026-10-08): migraciones 0009-0014 aplicadas y verificadas
+  contra la base real (append-only por permisos, coordenadas de `tiendas` sin grant), anti-spam
+  capas 2 y 3, `packages/providers` con Rappi contra fixtures reales del pasillo Bebidas,
+  `apps/crawler` (resolver, recorrer, guarda, faltantes, deteccion), `corrida.yml`, y en la web
+  `/direcciones`, `/direcciones/nueva` y el feed con hallazgos + "Descuentos que anuncia Rappi"
+  (decision del dueño: mostrarlos marcados "sin verificar" mientras se junta historial).
+- `npm run corrida:seca` en vivo contra la Turbo del Obelisco: 3.704 productos en 112 s.
 
 - Investigacion de factibilidad de las 7 fuentes candidatas → `wiki/fuentes.md`.
 - Lectura completa del core de `ivokalaizic/rappi-turbo-radar` (clonado en

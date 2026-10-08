@@ -11,13 +11,17 @@ endpoint REST todo lo que esta en `public`.
 | Archivo | Contenido |
 |---|---|
 | `0001_enums_y_schemas.sql` | schema `private` + los 7 enums |
-| `0002_catalogo.sql` | `proveedores`, `tiendas`, `productos_canonicos`, `productos` |
-| `0003_precios.sql` | `precios_actuales` (snapshot) + `precios_cambios` (changelog) |
-| `0004_aplicar_lote.sql` | `private.aplicar_lote_precios()` |
-| `0005_corridas.sql` | `corridas` |
-| `0006_hallazgos.sql` | `hallazgos`, `alerta_estado`, `notificaciones` |
 | `0007_usuarios.sql` | `perfiles`, `direcciones`, `direcciones_tiendas`, `suscripciones`, `canales_notificacion` |
 | `0008_rls.sql` | `private.usuario_ve_tienda()` + policies + grants |
+| `0009_catalogo.sql` | `proveedores`, `tiendas`, `productos_canonicos`, `productos` |
+| `0010_precios.sql` | `precios_actuales` (snapshot) + `precios_cambios` (changelog, append-only por permisos) |
+| `0011_aplicar_lote.sql` | `public.aplicar_lote_precios()`, ejecutable solo por `service_role` |
+| `0012_corridas.sql` | `corridas`, `credenciales_proveedor` |
+| `0013_hallazgos.sql` | `hallazgos`, `alerta_estado`, `notificaciones` |
+| `0014_ratio_lista.sql` | `precios_actuales.ratio_lista`: el descuento que anuncia el proveedor, para el feed |
+
+Las 0002 a 0006 del plan original se renumeraron a 0009+: la 0008 revoca los grants de todo
+`public`, y una tabla creada antes en orden de archivo los perderia en un `db reset`.
 
 ## Los cinco problemas del repo original, y como se resuelven
 

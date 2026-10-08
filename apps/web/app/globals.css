@@ -61,3 +61,15 @@ body {
   font-family: var(--font-sans);
   -webkit-tap-highlight-color: transparent;
 }
+
+/* El pin del mapa de direcciones: un divIcon, sin las imagenes por defecto de Leaflet. La forma
+   va en un hijo: Leaflet posiciona el icono con `transform`, y rotar el icono mismo lo pisaria. */
+.pin-direccion-forma {
+  width: 28px;
+  height: 28px;
+  background: var(--acento);
+  border: 3px solid #ffffff;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.35);
+}
