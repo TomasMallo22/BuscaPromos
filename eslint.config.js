@@ -22,7 +22,7 @@ const CLAVES_DE_REGLA = [
 ];
 
 export default tseslint.config(
-  { ignores: ['**/dist/**', '**/.next/**', '**/node_modules/**', 'probes/**'] },
+  { ignores: ['**/dist/**', '**/.next/**', '**/node_modules/**', 'probes/**', '**/next-env.d.ts'] },
 
   ...tseslint.configs.recommended,
 

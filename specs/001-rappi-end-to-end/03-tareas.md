@@ -26,7 +26,7 @@ contenedor ya esta abierta (bloqueo B1 cerrado), asi que tambien se puede iterar
 | 19 | `apps/crawler/corrida.ts` con guarda del 50% + piso de 100 | **si** | ⏳ |
 | 20 | `apps/crawler/notificar.ts` con los filtros de dos niveles | no | ⏳ |
 | 21 | Bot de Telegram + webhook | **si** | ⏳ (token del dueño) |
-| 22 | `apps/web`: login por invitacion, feed, detalle | no | ⏳ |
+| 22 | `apps/web`: login por invitacion, feed, detalle | no | 🟡 login listo; feed y detalle esperan `hallazgos` |
 | 23 | Limpiar los scripts fantasma de `package.json` | no | ⏳ |
 | 24 | `corrida.yml`, `corrida-seca.yml`, `probe.yml` | no | ⏳ |
 | 25 | Deploy a Vercel | — | ⏳ dueño |

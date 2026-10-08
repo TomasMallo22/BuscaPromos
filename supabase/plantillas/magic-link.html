@@ -1,0 +1,14 @@
+<!--
+  Supabase → Authentication → Emails → Magic Link. Asunto: "Tu link para entrar a BuscaPromos".
+  Usa {{ .RedirectTo }} (lo arma la web: <origen>/auth/confirm) y token_hash, no el flujo PKCE:
+  asi el link se puede pedir en la compu y abrir en el celular. Ver apps/web/app/auth/confirm.
+-->
+<h2>Entrar a BuscaPromos</h2>
+<p>Tocá el botón para entrar. El link sirve una sola vez y vence en una hora.</p>
+<p>
+  <a href="{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=email"
+     style="display:inline-block;padding:12px 20px;background:#2848c8;color:#ffffff;border-radius:8px;text-decoration:none;font-weight:600">
+    Entrar
+  </a>
+</p>
+<p style="color:#5a5a55;font-size:14px">Si no lo pediste vos, ignorá este mail: sin el link nadie entra.</p>

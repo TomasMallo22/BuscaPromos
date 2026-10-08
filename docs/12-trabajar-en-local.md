@@ -9,11 +9,10 @@ desarrollar a mano como para correr una sesion de Claude Code sobre el repo loca
 cd C:\repos
 git clone https://github.com/TomasMallo22/BuscaPromos.git
 cd BuscaPromos
-git checkout claude/festive-heisenberg-xvs0r9
 npm install
 ```
 
-El trabajo vive en la branch `claude/festive-heisenberg-xvs0r9`, todavia no en `main`.
+La branch principal es `main`. Cada cambio va en una branch propia y entra por Pull Request.
 
 ## Que corre hoy
 
@@ -21,8 +20,19 @@ El trabajo vive en la branch `claude/festive-heisenberg-xvs0r9`, todavia no en `
 npm run verificar     # typecheck + lint + tests + los dos chequeos estructurales
 ```
 
-Lo demas (`npm run dev`, `npm run corrida:offline`) **todavia no**, porque `apps/web` y
-`apps/crawler` no estan implementados. Ver `specs/001-rappi-end-to-end/03-tareas.md`.
+### La web
+
+```powershell
+copy .env.example apps\web\.env.local   # y completar las dos NEXT_PUBLIC_SUPABASE_*
+npm run dev                               # http://localhost:3000
+```
+
+Next lee el `.env.local` de `apps/web`, no el de la raiz. La web pega contra el Supabase real:
+el login de verdad necesita que `http://localhost:3000/**` este en las Redirect URLs (ver
+`docs/07-operacion.md`, "Supabase Auth").
+
+`npm run corrida:offline` **todavia no**: `apps/crawler` no esta implementado. Ver
+`specs/001-rappi-end-to-end/03-tareas.md`.
 
 Para correr el oraculo que valida el motor contra la implementacion original en Python:
 

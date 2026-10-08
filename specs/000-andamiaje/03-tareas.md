@@ -19,8 +19,8 @@
 | 13c | `get_advisors` de seguridad limpio | no | ✅ |
 | 14 | `npm run db:tipos` → `packages/db/src/tipos.ts` | no | ✅ |
 | 14b | Tests de RLS con dos JWT reales | no | ⏳ |
-| 15 | Next 15 mobile-first: `/login` con magic link, `/feed` vacio, `/ajustes` | no | ⏳ |
-| 16 | SMTP de Resend en Supabase Auth | — | ⏳ dueño |
+| 15 | Next 15 mobile-first: `/login` con magic link, `/feed` vacio, `/ajustes` | no | ✅ |
+| 16 | SMTP de Resend en Supabase Auth | — | ⏳ dueño (dominio verificado; falta cargarlo en Supabase) |
 | 17 | Deploy a Vercel y probar el login desde el celular | — | ⏳ dueño |
 | 18 | Actualizar `.llm-wiki/wiki/estado-actual.md` | no | ✅ |
 | 19 | Casos sinteticos de `fixtures/rappi/casos/`, validados contra el original | no | ✅ |

@@ -54,6 +54,7 @@ jobs:
             exit 1
           fi
 
-      # El build de la web se activa cuando exista apps/web (tarea 15 de la spec 000).
+      # Sin variables de entorno a proposito: las paginas que hablan con Supabase son dinamicas
+      # y leen las claves al recibir un request, no al buildear.
       - name: Build de la web
         run: npm run build

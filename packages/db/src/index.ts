@@ -18,3 +18,6 @@ export type {
   Enums,
 } from './tipos.js';
 export { Constants } from './tipos.js';
+
+export type { ClienteUsuario } from './usuarios.js';
+export { contarDireccionesActivas, obtenerPerfil } from './usuarios.js';
