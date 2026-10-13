@@ -118,6 +118,11 @@ La lista, con la cadencia de cada uno, vive en `packages/providers/src/rappi/tie
 request cambia `state.store_type` (el tipo) y `state.parent_store_type` (`turbo_home` en Turbo, el
 mismo tipo en cada supermercado). `master_product_id` es el mismo entre tiendas.
 
+**Hay 10 "Turbo"** (spec 003, verificado el 2026-10-13): la app llama "Turbo" a `turbo`,
+`turbo_veinticuatro_nc`, `turbo_express`, `turbo_carnes_nc`, `turbo_discounter_nc`,
+`turbo_supermercado_nc` y cuatro mas. Se siguen la clasica y la **24 hs**: en algunas zonas
+(la casa del dueño, a 49 m del borde de la clasica) solo llega la 24 hs, y abre de noche.
+
 **La presentacion.** Rappi manda el texto (`presentation`) y la cantidad estructurada
 (`quantity` + `unit_type`, POR UNIDAD). Gana el texto si coincide o si es un multipack explicito
 ("4 x 237 mL"); si no, lo estructurado ("1 x 45261 L" en un vino de 1,12 L). Lo que se vende por

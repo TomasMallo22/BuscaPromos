@@ -22,12 +22,16 @@ export { Constants } from './tipos.js';
 export type { ClienteUsuario } from './usuarios.js';
 export { contarDireccionesActivas, obtenerPerfil } from './usuarios.js';
 export {
+  actualizarDireccion,
+  borrarDireccion,
   crearDireccion,
   descuentosAnunciados,
   hallazgosVigentes,
   misDirecciones,
   misTiendas,
+  obtenerDireccion,
   type DescuentoAnunciado,
+  type FiltroFeed,
   type DireccionDelUsuario,
   type HallazgoEnFeed,
   type ResultadoNuevaDireccion,

@@ -5,10 +5,11 @@ import {
   misTiendas,
   type DireccionDelUsuario,
 } from '@buscapromos/db';
-import { PARAMETROS } from '@buscapromos/core';
+import { CATEGORIAS, PARAMETROS } from '@buscapromos/core';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { AutoRefresco } from '@/componentes/auto-refresco';
+import { FiltrosFeed } from '@/componentes/filtros-feed';
 import { TarjetaDescuento, TarjetaHallazgo } from '@/componentes/tarjetas';
 import { diaDeHistorial, primeroPorProducto } from '@/lib/formato';
 import { crearClienteServidor } from '@/lib/supabase/servidor';
@@ -18,7 +19,13 @@ import { crearClienteServidor } from '@/lib/supabase/servidor';
  * funciona justo cuando funciona como se diseño. Todo lo que muestra viene calculado de la
  * base (regla de oro 11): la pagina ordena y formatea, no detecta.
  */
-export default async function PaginaFeed() {
+export default async function PaginaFeed({ searchParams }: { searchParams: Promise<{ cat?: string; q?: string }> }) {
+  const { cat, q } = await searchParams;
+  // Solo categorias que existen: lo que viene en la URL lo escribio cualquiera.
+  const categoria = CATEGORIAS.some((c) => c.clave === cat) ? cat! : null;
+  const texto = q?.trim().slice(0, 60) || null;
+  const filtro = { categoria, texto };
+  const filtrando = categoria !== null || texto !== null;
   const supabase = await crearClienteServidor();
   const [direcciones, tiendas] = await Promise.all([misDirecciones(supabase), misTiendas(supabase)]);
 
@@ -43,7 +50,9 @@ export default async function PaginaFeed() {
   const esperando = buscandoTienda.length > 0 || primeraVez.length > 0;
 
   const [hallazgos, descuentos] =
-    recorridas.length > 0 ? await Promise.all([hallazgosVigentes(supabase), descuentosAnunciados(supabase)]) : [[], []];
+    recorridas.length > 0
+      ? await Promise.all([hallazgosVigentes(supabase, filtro), descuentosAnunciados(supabase, filtro)])
+      : [[], []];
   const porProducto = primeroPorProducto(hallazgos);
 
   // El dia del arranque ciego cuenta desde la tienda mas vieja: con una sola, es esa.
@@ -67,6 +76,12 @@ export default async function PaginaFeed() {
       {sinCobertura.length > 0 && (
         <Aviso titulo={`Rappi no llega a ${nombres(sinCobertura)}`}>
           <p>Lo intentamos durante un día y no apareció ninguna de las tiendas que seguimos para esa dirección.</p>
+          <p className="mt-2">
+            <Link href="/direcciones" className="font-medium text-acento underline underline-offset-2">
+              Revisá la ubicación
+            </Link>{' '}
+            por si el pin quedó corrido.
+          </p>
         </Aviso>
       )}
 
@@ -92,20 +107,30 @@ export default async function PaginaFeed() {
         </div>
       )}
 
+      {recorridas.length > 0 && <FiltrosFeed categoria={categoria} texto={texto} />}
+
       {recorridas.length > 0 && (
         <section className="space-y-3">
           <div>
             <h2 className="font-semibold">Detectado por BuscaPromos</h2>
-            <p className="mt-1 text-sm text-texto-suave">En {recorridas.map((t) => t.nombre ?? t.tipo).join(', ')}.</p>
+            <p className="mt-1 text-sm text-texto-suave">En {[...new Set(recorridas.map((t) => t.nombre ?? t.tipo))].join(', ')}.</p>
           </div>
           {porProducto.length > 0 ? (
             porProducto.map((h) => <TarjetaHallazgo key={h.id} h={h} />)
           ) : (
             <p className="rounded-xl border border-borde bg-superficie p-4 text-texto-suave">
-              Nada raro por ahora. Es lo normal: avisamos cuando algo está muy por debajo de su precio de siempre.
+              {filtrando
+                ? 'Nada detectado con este filtro por ahora.'
+                : 'Nada raro por ahora. Es lo normal: avisamos cuando algo está muy por debajo de su precio de siempre.'}
             </p>
           )}
         </section>
+      )}
+
+      {filtrando && recorridas.length > 0 && descuentos.length === 0 && (
+        <p className="rounded-xl border border-borde bg-superficie p-4 text-texto-suave">
+          Rappi no anuncia descuentos con este filtro.
+        </p>
       )}
 
       {descuentos.length > 0 && (

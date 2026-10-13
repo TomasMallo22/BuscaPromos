@@ -4,11 +4,15 @@ _Ultima actualizacion: 2026-10-07_
 
 ## Donde estamos
 
-**Spec 002 (supermercados de Rappi) implementada** (2026-10-08). Ademas de Turbo, el buscador
-sigue Jumbo, Disco, Vea, Carrefour, Carrefour Express, Coto, Dia y Farmacity: cada direccion se
-re-consulta cada hora, Turbo se recorre cada 30 minutos y los supermercados cada 4 horas, y
-`vs_otras_tiendas` esta encendida (identidad `rappi_master`). Falta la primera pasada real con
-supermercados (tarea 10) y despues Telegram.
+**Spec 003 implementada** (2026-10-13), encima de la 002, que tampoco esta mergeada todavia
+(van juntas en un PR). Turbo + Turbo 24 hs + 8 supermercados; filtro del feed por 14
+categorias comunes y busqueda por nombre; direcciones por texto (Georef), editables y
+borrables; suscripciones por direccion; "sin cobertura" solo con un fallo de dia; Supabase
+dispara el buscador cada 30 min. **Ojo:** las migraciones 0015-0017 ya estan aplicadas en la
+base y el codigo de `main` todavia no las conoce: hay que mergear el PR cuanto antes.
+
+Lo que sigue: Telegram (con avisos por categoria), tests de RLS con dos JWT reales y la revision
+adversarial de las specs 001-003.
 
 ## Hecho
 

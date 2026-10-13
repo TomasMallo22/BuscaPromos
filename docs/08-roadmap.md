@@ -43,9 +43,8 @@ re-discutirlo cada tres meses.
 
 ## Lo que esta fuera de alcance, a proposito
 
-- **Geocoding.** El usuario pone un pin en un mapa (Leaflet + OSM) o pega el lat/lng de Google
-  Maps. Nominatim pide 1 req/s y atribucion; Google Places pide tarjeta. Para 10 usuarios con
-  2 direcciones cada uno, no se construye geocoding.
+- ~~**Geocoding.**~~ Entro en la spec 003 (2026-10-13): el GPS del celular no le alcanzaba al
+  dueño. Se usa Georef (datos.gob.ar), gratuita y sin clave, y el resultado se confirma en el mapa.
 - **Comparador de precios.** No es lo que hace este proyecto. Ver [`00-vision.md`](00-vision.md).
 - **App movil.** La web es mobile-first y se agrega a la pantalla de inicio.
 - **Carrito o compra automatica.** Se avisa; comprar lo hace una persona.

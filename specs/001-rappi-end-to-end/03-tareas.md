@@ -26,7 +26,7 @@ contenedor ya esta abierta (bloqueo B1 cerrado), asi que tambien se puede iterar
 | 19 | Secrets de Actions y token de GitHub en Vercel | — | ⏳ dueño |
 | 20 | Primera corrida real de punta a punta desde la web | **si** | ⏳ |
 | 21 | Tests de RLS **con dos JWT reales** | no | ⏳ |
-| 22 | Migraciones 0014 (filtros) y 0015 (invitaciones) | no | ⏳ |
+| 22 | ~~Filtros de lista + umbral~~ (reemplazado por el filtro por categoria de la spec 003); invitaciones | no | ⏳ |
 | 23 | `apps/crawler/notificar.ts` con los filtros de dos niveles + bot de Telegram | **si** | ⏳ (token del dueño) |
 | 24 | Web: detalle `/feed/[id]` con el grafico de historial | no | ⏳ |
 | 25 | Limpiar los scripts fantasma de `package.json` | no | ⏳ |
