@@ -4,7 +4,7 @@
  *   npm run db:tipos
  *
  * Generado el 2026-10-07 contra el proyecto `yqfupeqgjibtfvgazvqw` (sa-east-1), con las
- * migraciones 0001 y 0007 a 0016 aplicadas. Si cambiás el esquema, regeneralo y commitealo:
+ * migraciones 0001 y 0007 a 0019 aplicadas. Si cambiás el esquema, regeneralo y commitealo:
  * es lo que hace que un cambio de columna rompa la compilacion del crawler, de la web y de
  * `packages/db` a la vez, en vez de fallar en runtime.
  */
@@ -66,6 +66,57 @@ export type Database = {
           },
           {
             foreignKeyName: "alerta_estado_tienda_id_fkey"
+            columns: ["tienda_id"]
+            isOneToOne: false
+            referencedRelation: "tiendas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      avisos_descuento: {
+        Row: {
+          creado_at: string
+          enviada_at: string | null
+          error: string | null
+          precio_avisado: number
+          precio_lista: number
+          producto_id: string
+          termino: string
+          tienda_id: string
+          usuario_id: string
+        }
+        Insert: {
+          creado_at?: string
+          enviada_at?: string | null
+          error?: string | null
+          precio_avisado: number
+          precio_lista: number
+          producto_id: string
+          termino: string
+          tienda_id: string
+          usuario_id: string
+        }
+        Update: {
+          creado_at?: string
+          enviada_at?: string | null
+          error?: string | null
+          precio_avisado?: number
+          precio_lista?: number
+          producto_id?: string
+          termino?: string
+          tienda_id?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avisos_descuento_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avisos_descuento_tienda_id_fkey"
             columns: ["tienda_id"]
             isOneToOne: false
             referencedRelation: "tiendas"
@@ -379,6 +430,8 @@ export type Database = {
       }
       perfiles: {
         Row: {
+          avisos_categorias: string[]
+          avisos_terminos: string[]
           creado_at: string
           hora_silencio_desde: number
           hora_silencio_hasta: number
@@ -387,6 +440,8 @@ export type Database = {
           nombre: string | null
         }
         Insert: {
+          avisos_categorias?: string[]
+          avisos_terminos?: string[]
           creado_at?: string
           hora_silencio_desde?: number
           hora_silencio_hasta?: number
@@ -395,6 +450,8 @@ export type Database = {
           nombre?: string | null
         }
         Update: {
+          avisos_categorias?: string[]
+          avisos_terminos?: string[]
           creado_at?: string
           hora_silencio_desde?: number
           hora_silencio_hasta?: number
@@ -705,6 +762,11 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      crear_vinculo_telegram: { Args: never; Returns: string }
+      vincular_telegram: {
+        Args: { p_chat_id: string; p_token: string }
+        Returns: boolean
+      }
       aplicar_lote_precios: {
         Args: { p_filas: Json; p_tienda_id: string; p_ts: string }
         Returns: {

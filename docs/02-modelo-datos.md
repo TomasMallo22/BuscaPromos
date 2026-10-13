@@ -22,6 +22,8 @@ endpoint REST todo lo que esta en `public`.
 | `0015_tienda_tipo.sql` | `tiendas.tipo`: el `store_type` de Rappi (Turbo, Turbo 24 hs, cada supermercado) |
 | `0016_direcciones_editables_y_categoria.sql` | una suscripcion por direccion (cascade), trigger que invalida las tiendas de una direccion movida, `direcciones.fallo_diurno_at`, `productos.categoria` |
 | `0017_disparo_cada_30_min.sql` | `pg_cron` + `pg_net`: dispara `corrida.yml` cada 30 min con el token de Vault |
+| `0018_endurecer_permisos.sql` | `authenticated` solo escribe las columnas que le corresponden: no crea suscripciones ni toca el estado de resolucion |
+| `0019_avisos_telegram.sql` | preferencias de avisos en `perfiles`, `crear_vinculo_telegram` y `vincular_telegram`, `avisos_descuento` |
 
 Las 0002 a 0006 del plan original se renumeraron a 0009+: la 0008 revoca los grants de todo
 `public`, y una tabla creada antes en orden de archivo los perderia en un `db reset`.

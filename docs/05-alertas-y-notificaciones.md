@@ -1,5 +1,12 @@
 # 05 — Alertas y notificaciones
 
+## Que se avisa (spec 004, decidido con el dueño el 2026-10-13)
+
+Cada usuario elige **categorias** y **productos** (texto libre) en Ajustes. Es opt-in: sin
+nada elegido no le llega nada. Le llegan los hallazgos de sus categorias o productos, y SOLO
+para los productos escritos, los descuentos que anuncia Rappi de 30% o mas, marcados "sin
+verificar" (tabla `avisos_descuento`). Reemplaza el filtro de "lista + umbral" de la 001.
+
 ## Los dos pasos
 
 **Deteccion** (en la corrida) escribe `hallazgos` y `alerta_estado`. No sabe que existen

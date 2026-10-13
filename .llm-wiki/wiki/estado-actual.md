@@ -4,15 +4,15 @@ _Ultima actualizacion: 2026-10-07_
 
 ## Donde estamos
 
-**Spec 003 implementada** (2026-10-13), encima de la 002, que tampoco esta mergeada todavia
-(van juntas en un PR). Turbo + Turbo 24 hs + 8 supermercados; filtro del feed por 14
-categorias comunes y busqueda por nombre; direcciones por texto (Georef), editables y
-borrables; suscripciones por direccion; "sin cobertura" solo con un fallo de dia; Supabase
-dispara el buscador cada 30 min. **Ojo:** las migraciones 0015-0017 ya estan aplicadas en la
-base y el codigo de `main` todavia no las conoce: hay que mergear el PR cuanto antes.
+**Spec 004 (avisos por Telegram) implementada** (2026-10-13), en `claude/spec-004-avisos-telegram`
+junto con la 0018 (endurecer permisos, hallazgos de una revision de seguridad propia). Las
+specs 002 y 003 ya estan en `main`. Las migraciones hasta la 0019 estan aplicadas en la base.
 
-Lo que sigue: Telegram (con avisos por categoria), tests de RLS con dos JWT reales y la revision
-adversarial de las specs 001-003.
+Falta del dueño: el token de GitHub en Vault (`github_token_corrida`: no estaba cargado), y
+crear el bot con sus secrets y variables (ver `docs/07-operacion.md`).
+
+Lo que sigue: tests de RLS con dos JWT reales, y lo que salga de la revision adversarial de
+las specs 001-003 (corriendo en otra sesion).
 
 ## Hecho
 

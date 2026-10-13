@@ -7,7 +7,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./servicio": "./src/servicio.ts",
-    "./crawler": "./src/crawler.ts"
+    "./crawler": "./src/crawler.ts",
+    "./avisos": "./src/avisos.ts"
   },
   "dependencies": {
     "@buscapromos/core": "*",

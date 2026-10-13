@@ -37,6 +37,20 @@ El cron corre cada 30 minutos, pero cada corrida recorre solo las tiendas a las 
 Turbo cada 30 minutos, los supermercados cada 4 horas (`TIENDAS_RAPPI`). Las direcciones se
 re-consultan cada hora, asi una tienda que no estaba (Turbo de noche) se suma sola.
 
+## Avisos por Telegram (spec 004)
+
+| Donde | Nombre | Que |
+|---|---|---|
+| GitHub → Secrets | `TELEGRAM_BOT_TOKEN` | el token de @BotFather |
+| GitHub → Secrets | `TELEGRAM_WEBHOOK_SECRET` | un texto al azar (letras, numeros, `_` y `-`, hasta 256) |
+| GitHub → Variables | `URL_WEB` | `https://<la-web>.vercel.app`, sin barra final |
+| Vercel | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET` | los mismos |
+| Vercel | `NEXT_PUBLIC_TELEGRAM_BOT` | el usuario del bot, sin @ |
+
+Despues de cargarlos y redeployar Vercel: Actions → **telegram-webhook** → Run workflow. Imprime
+`"ok":true` si Telegram acepto el webhook. Los avisos salen en el paso **Avisos** de
+`corrida.yml`; su log dice cuantos se registraron, enviaron, fallaron o vencieron.
+
 ## Rappi de noche
 
 El router de tiendas no lista la Turbo cuando esta cerrada (verificado el 2026-10-08 a las

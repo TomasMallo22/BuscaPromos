@@ -47,3 +47,13 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           RAPPI_DEVICE_ID: ${{ secrets.RAPPI_DEVICE_ID }}
           RAPPI_APP_VERSION: ${{ vars.RAPPI_APP_VERSION }}
+
+      # Los avisos por Telegram (spec 004). `always()`: si una tienda fallo, lo pendiente sale
+      # igual. Sin TELEGRAM_BOT_TOKEN no hace nada.
+      - name: Avisos
+        if: always()
+        run: npm run notificar
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}

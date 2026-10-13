@@ -3,16 +3,8 @@
  * vienen ya calculados de la base (regla de oro 11).
  */
 
-const ARS = new Intl.NumberFormat('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
-
-/** `$1.200,50`: punto para miles, coma para decimales. */
-export function pesos(n: number): string {
-  const conDecimales = Number.isInteger(n) ? ARS.format(n) : n.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  return `$${conDecimales}`;
-}
-
-/** Un ratio `precio / referencia` como "cuanto menos": 0.45 -> "55%". */
-export const porcentajeMenos = (ratio: number): string => `${Math.round((1 - ratio) * 100)}%`;
+// Precio y descuento viven en el core: Telegram los escribe igual (spec 004).
+export { pesos, porcentajeMenos } from '@buscapromos/core';
 
 /** Por ahora el buscador solo anda en Argentina (Rappi .com.ar). Caja holgada del pais. */
 export function coordenadasValidas(lat: number, lng: number): boolean {

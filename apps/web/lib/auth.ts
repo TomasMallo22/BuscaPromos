@@ -33,7 +33,8 @@ export function tipoOtp(valor: string | null): TipoOtp | null {
 
 /** Las rutas que se ven sin sesion. Todo lo demas redirige a `/login`. */
 export function esRutaPublica(ruta: string): boolean {
-  return ruta === '/login' || ruta.startsWith('/auth/');
+  // El webhook lo llama Telegram, sin sesion: valida su propio secreto (spec 004).
+  return ruta === '/login' || ruta.startsWith('/auth/') || ruta === '/api/telegram/webhook';
 }
 
 /** Chequeo de forma, no de existencia: el que decide si el mail sirve es Supabase. */
