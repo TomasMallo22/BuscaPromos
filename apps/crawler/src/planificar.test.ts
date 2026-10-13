@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { REGISTRY } from '@buscapromos/core';
-import { detectarProducto, evaluarGuarda, faltantes, planificarHallazgos, subPasilloDe } from './planificar.js';
+import { decidirCobertura, detectarProducto, evaluarGuarda, faltantes, planificarHallazgos, subPasilloDe, tocaRecorrer } from './planificar.js';
 
 const DIA = 86400;
 const AHORA = 1_000 * DIA;
@@ -79,6 +79,78 @@ describe('detectarProducto', () => {
   it('sin stock no dispara nada (regla de oro 5)', () => {
     const { disparos } = detectarProducto({ ...base, precio: 1, enStock: false, historial: [], pasillo: null, ahora: AHORA });
     expect(disparos).toEqual([]);
+  });
+});
+
+describe('vs_otras_tiendas (spec 002)', () => {
+  const base = { precioLista: null, promoExcluida: false, enStock: true, pasillo: null, ahora: AHORA };
+
+  it('E3: a $1000 contra una mediana de $2500 en 3 tiendas dispara, sin esperar historial', () => {
+    const { disparos } = detectarProducto({ ...base, precio: 1000, historial: [], otrasTiendas: [2000, 2500, 3000] });
+    const d = disparos.find((x) => x.regla === r.vs_otras_tiendas.clave);
+    expect(d).toMatchObject({ precioReferencia: 2500, ratio: 0.4, detalle: { nTiendas: 3 } });
+  });
+
+  it('E5: con una sola tienda mas no opina', () => {
+    const { disparos } = detectarProducto({ ...base, precio: 1000, historial: [], otrasTiendas: [2500] });
+    expect(disparos.map((x) => x.regla)).not.toContain(r.vs_otras_tiendas.clave);
+  });
+
+  it('mas caro que la mitad de la mediana: nada', () => {
+    const { disparos } = detectarProducto({ ...base, precio: 1300, historial: [], otrasTiendas: [2500, 2500] });
+    expect(disparos).toEqual([]);
+  });
+});
+
+describe('tocaRecorrer — cada tienda a su ritmo (spec 002, E4)', () => {
+  const ahora = 1_000_000;
+  it('nunca recorrida: toca', () => {
+    expect(tocaRecorrer(null, 240, ahora)).toBe(true);
+  });
+  it('Turbo hace 31 minutos, cadencia 30: toca', () => {
+    expect(tocaRecorrer(ahora - 31 * 60, 30, ahora)).toBe(true);
+  });
+  it('Jumbo hace 2 horas, cadencia 4 horas: no toca', () => {
+    expect(tocaRecorrer(ahora - 2 * 3600, 240, ahora)).toBe(false);
+  });
+  it('con 5 minutos de margen: el cron de :07/:37 no la saltea por segundos', () => {
+    expect(tocaRecorrer(ahora - 26 * 60, 30, ahora)).toBe(true);
+    expect(tocaRecorrer(ahora - 24 * 60, 30, ahora)).toBe(false);
+  });
+});
+
+describe('decidirCobertura — spec 003, E9', () => {
+  // 2026-10-08 00:00 ART = 03:00 UTC.
+  const art = (dia: number, hora: number) => Date.UTC(2026, 9, dia, hora + 3) / 1000;
+  const creada = art(7, 23);
+
+  it('de noche y sin tiendas: no marca nada, ni siquiera el fallo diurno', () => {
+    expect(decidirCobertura({ creadaAt: creada, falloDiurnoAt: null }, art(9, 5))).toEqual({
+      marcarFalloDiurno: false,
+      sinCobertura: false,
+    });
+  });
+
+  it('el bug del 09/10: 30 horas sin correr de dia NO alcanza para "sin cobertura"', () => {
+    expect(decidirCobertura({ creadaAt: creada, falloDiurnoAt: null }, art(9, 5)).sinCobertura).toBe(false);
+  });
+
+  it('de dia y sin tiendas: anota el primer fallo diurno', () => {
+    expect(decidirCobertura({ creadaAt: creada, falloDiurnoAt: null }, art(8, 14))).toEqual({
+      marcarFalloDiurno: true,
+      sinCobertura: false,
+    });
+  });
+
+  it('con fallo diurno y mas de 24 h: sin cobertura', () => {
+    expect(decidirCobertura({ creadaAt: creada, falloDiurnoAt: art(8, 14) }, art(9, 5))).toEqual({
+      marcarFalloDiurno: false,
+      sinCobertura: true,
+    });
+  });
+
+  it('con fallo diurno pero menos de 24 h: todavia no', () => {
+    expect(decidirCobertura({ creadaAt: creada, falloDiurnoAt: art(8, 14) }, art(8, 20)).sinCobertura).toBe(false);
   });
 });
 

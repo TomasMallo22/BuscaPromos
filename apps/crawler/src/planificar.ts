@@ -7,6 +7,7 @@ import {
   decidirAlerta,
   estadoOferta,
   evaluarReglas,
+  medianaOtrasTiendas,
   PARAMETROS,
   precioHabitual,
   type Disparo,
@@ -58,6 +59,36 @@ export function faltantes(
 export const subPasilloDe = (categoriaPath: readonly string[], nivel: number): string =>
   categoriaPath.slice(0, nivel).join(' › ');
 
+/** De 10 a 20 h ART todas las tiendas estan abiertas: un "no hay tiendas" a esa hora es creible. */
+const esHorarioDiurno = (epoch: number) => {
+  const hora = Math.floor(epoch / 3600 - 3) % 24; // Argentina, UTC-3 todo el año
+  return hora >= 10 && hora < 20;
+};
+
+/**
+ * Una direccion para la que Rappi no devolvio ninguna tienda: ¿es "sin cobertura" o hay que
+ * volver a intentar? Hace falta mas de un dia **y** al menos un intento fallido de dia: de noche
+ * Rappi esconde tiendas que existen (spec 003, E9; el bug del 09/10 fue marcarla con solo la
+ * primera condicion, en una corrida de las 05:49).
+ */
+export function decidirCobertura(
+  d: { creadaAt: number; falloDiurnoAt: number | null },
+  ahora: number,
+): { marcarFalloDiurno: boolean; sinCobertura: boolean } {
+  return {
+    marcarFalloDiurno: d.falloDiurnoAt === null && esHorarioDiurno(ahora),
+    sinCobertura: d.falloDiurnoAt !== null && ahora - d.creadaAt > 24 * 3600,
+  };
+}
+
+/** Margen para que el cron de :07 y :37 no saltee una tienda por segundos de diferencia. */
+const MARGEN_CADENCIA_S = 5 * 60;
+
+/** ¿Le toca a esta tienda? Turbo cada 30 minutos, los supermercados cada 4 horas (spec 002). */
+export function tocaRecorrer(ultimaCorridaOk: number | null, cadenciaMinutos: number, ahora: number): boolean {
+  return ultimaCorridaOk === null || ahora - ultimaCorridaOk >= cadenciaMinutos * 60 - MARGEN_CADENCIA_S;
+}
+
 /** Las reglas que dispara un producto, con su historial ya cargado (incluida la fila de hoy). */
 export function detectarProducto(e: {
   precio: number;
@@ -67,6 +98,8 @@ export function detectarProducto(e: {
   historial: readonly FilaPrecio[];
   /** Solo hace falta si no hay precio habitual. */
   pasillo: ReferenciaPasillo | null;
+  /** Su precio en las otras tiendas, solo con identidad comparable (regla de oro 15). */
+  otrasTiendas?: readonly number[];
   ahora: number;
 }): { disparos: Disparo[]; estadoOferta: EstadoOferta } {
   const habitual = precioHabitual(e.historial, PARAMETROS.historialDias, e.ahora);
@@ -82,8 +115,7 @@ export function detectarProducto(e: {
     },
     habitual,
     oferta,
-    // vs_otras_tiendas necesita dos tiendas con identidad comparable: llega con la spec 004.
-    mediana: null,
+    mediana: e.otrasTiendas ? medianaOtrasTiendas(e.otrasTiendas) : null,
     pasillo: habitual === null ? e.pasillo : null,
   });
   return { disparos, estadoOferta: oferta?.estado ?? 'sin_historial' };
@@ -133,3 +165,10 @@ export function planificarHallazgos(
   }
   return { abrir, cerrar };
 }
+
+/**
+ * La presentacion que entra al indice de gondola. Lo que se vende por peso queda afuera: su
+ * precio no es el del paquete que dice la presentacion (spec 002).
+ */
+export const presentacionComparable = (p: { presentacion: string | null; seVendePorPeso: boolean }): string | null =>
+  p.seVendePorPeso ? null : p.presentacion;

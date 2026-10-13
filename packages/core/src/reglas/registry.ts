@@ -179,6 +179,12 @@ export const PARAMETROS = {
   mismoPrecio: 0.02,
   /** Comparables del mismo sub-pasillo y dimension para `nuevo_vs_pasillo`. */
   minComparables: 8,
+  /**
+   * Otras tiendas con el mismo producto para que `vs_otras_tiendas` opine. NO esta en el
+   * original, donde la regla nunca tuvo mas de una tienda real: con una sola referencia, un
+   * error de precio en la otra tienda seria un falso positivo convincente (spec 002, E5).
+   */
+  minTiendasMediana: 2,
 } as const;
 
 export type Parametros = { readonly [K in keyof typeof PARAMETROS]: number };

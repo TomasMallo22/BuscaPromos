@@ -4,7 +4,7 @@
  *   npm run db:tipos
  *
  * Generado el 2026-10-07 contra el proyecto `yqfupeqgjibtfvgazvqw` (sa-east-1), con las
- * migraciones 0001 y 0007 a 0014 aplicadas. Si cambiás el esquema, regeneralo y commitealo:
+ * migraciones 0001 y 0007 a 0016 aplicadas. Si cambiás el esquema, regeneralo y commitealo:
  * es lo que hace que un cambio de columna rompa la compilacion del crawler, de la web y de
  * `packages/db` a la vez, en vez de fallar en runtime.
  */
@@ -196,6 +196,7 @@ export type Database = {
           activa: boolean
           creada_at: string
           etiqueta: string
+          fallo_diurno_at: string | null
           id: string
           lat: number
           lng: number
@@ -208,6 +209,7 @@ export type Database = {
           activa?: boolean
           creada_at?: string
           etiqueta: string
+          fallo_diurno_at?: string | null
           id?: string
           lat: number
           lng: number
@@ -220,6 +222,7 @@ export type Database = {
           activa?: boolean
           creada_at?: string
           etiqueta?: string
+          fallo_diurno_at?: string | null
           id?: string
           lat?: number
           lng?: number
@@ -507,6 +510,7 @@ export type Database = {
         Row: {
           actualizado_at: string
           canonico_id: string | null
+          categoria: string
           categoria_path: string[]
           id: string
           id_externo: string
@@ -519,6 +523,7 @@ export type Database = {
         Insert: {
           actualizado_at?: string
           canonico_id?: string | null
+          categoria?: string
           categoria_path?: string[]
           id?: string
           id_externo: string
@@ -531,6 +536,7 @@ export type Database = {
         Update: {
           actualizado_at?: string
           canonico_id?: string | null
+          categoria?: string
           categoria_path?: string[]
           id?: string
           id_externo?: string
@@ -601,7 +607,7 @@ export type Database = {
           activa: boolean
           categorias_excluidas: string[]
           creada_at: string
-          direccion_id: string | null
+          direccion_id: string
           id: string
           ratio_maximo: number
           reglas_habilitadas: Database["public"]["Enums"]["regla_clave"][]
@@ -612,7 +618,7 @@ export type Database = {
           activa?: boolean
           categorias_excluidas?: string[]
           creada_at?: string
-          direccion_id?: string | null
+          direccion_id: string
           id?: string
           ratio_maximo?: number
           reglas_habilitadas?: Database["public"]["Enums"]["regla_clave"][]
@@ -623,7 +629,7 @@ export type Database = {
           activa?: boolean
           categorias_excluidas?: string[]
           creada_at?: string
-          direccion_id?: string | null
+          direccion_id?: string
           id?: string
           ratio_maximo?: number
           reglas_habilitadas?: Database["public"]["Enums"]["regla_clave"][]
@@ -657,6 +663,7 @@ export type Database = {
           nombre: string | null
           primera_corrida_ok_at: string | null
           proveedor_id: string
+          tipo: string
           ultima_corrida_ok_at: string | null
         }
         Insert: {
@@ -668,6 +675,7 @@ export type Database = {
           nombre?: string | null
           primera_corrida_ok_at?: string | null
           proveedor_id: string
+          tipo?: string
           ultima_corrida_ok_at?: string | null
         }
         Update: {
@@ -679,6 +687,7 @@ export type Database = {
           nombre?: string | null
           primera_corrida_ok_at?: string | null
           proveedor_id?: string
+          tipo?: string
           ultima_corrida_ok_at?: string | null
         }
         Relationships: [

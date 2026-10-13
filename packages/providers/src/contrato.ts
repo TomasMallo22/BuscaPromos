@@ -24,6 +24,8 @@ export interface Ubicacion {
 }
 
 export interface TiendaResuelta {
+  /** El tipo de tienda dentro del proveedor: en Rappi, el `store_type` ('turbo', 'coto'...). */
+  readonly tipo: string;
   readonly idExterno: string;
   readonly nombre: string | null;
   /** Las coordenadas con las que se consulta la tienda. */
@@ -47,6 +49,11 @@ export interface ProductoNormalizado {
   readonly promoKind: PromoKind;
   readonly enStock: boolean;
   readonly stock: number | null;
+  /**
+   * Se vende por peso: el precio no es el del paquete de la presentacion. No entra al indice
+   * de gondola (spec 002: chorizos "de 400 g" a $260 en Dia).
+   */
+  readonly seVendePorPeso: boolean;
 }
 
 /** Un grupo del catalogo (un sub-pasillo). */
@@ -72,8 +79,10 @@ export interface Proveedor {
   readonly id: string;
   readonly tipo: TipoProveedor;
   readonly politicas: PoliticasProveedor;
-  /** `null` si no hay tienda en esa zona (o no la hay en este momento: ver Rappi de noche). */
-  resolverTienda(u: Ubicacion, ctx: CtxProveedor): Promise<TiendaResuelta | null>;
+  /** Las tiendas de esa zona. Vacio no es "sin cobertura": puede ser que esten cerradas (Rappi de noche). */
+  resolverTiendas(u: Ubicacion, ctx: CtxProveedor): Promise<TiendaResuelta[]>;
+  /** Cada cuanto se recorre una tienda de ese tipo. */
+  cadenciaMinutos(tipo: string): number;
   /**
    * `AsyncIterable` y no `Promise<Producto[]>`: permite aplicar lotes sin tener el catalogo
    * entero en memoria, y el `falloMotivo` por lote modela los grupos fallidos sin un canal
@@ -81,7 +90,7 @@ export interface Proveedor {
    */
   recorrer(t: TiendaResuelta, ctx: CtxProveedor): AsyncIterable<LoteProductos>;
   /** Una URL donde el producto se puede comprar EN ESA tienda. */
-  urlProducto(p: { nombre: string }, t: { idExterno: string }): string;
+  urlProducto(p: { nombre: string }, t: { idExterno: string; tipo: string }): string;
   claveCanonica(p: ProductoNormalizado): { clave: string; origen: OrigenClave } | null;
 }
 

@@ -61,7 +61,8 @@ describe('REGISTRY', () => {
 
 describe('PARAMETROS', () => {
   it('son los del original', () => {
-    expect(PARAMETROS).toEqual({
+    const delOriginal = Object.fromEntries(Object.entries(PARAMETROS).filter(([k]) => k !== 'minTiendasMediana'));
+    expect(delOriginal).toEqual({
       historialDias: 14,
       realertarSiBaja: 0.05,
       ofertaPermanenteDias: 7,
@@ -70,5 +71,9 @@ describe('PARAMETROS', () => {
       mismoPrecio: 0.02,
       minComparables: 8,
     });
+  });
+
+  it('el unico agregado, con su razon en el registry: minTiendasMediana', () => {
+    expect(PARAMETROS.minTiendasMediana).toBe(2);
   });
 });

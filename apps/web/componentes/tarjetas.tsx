@@ -16,6 +16,7 @@ function Tarjeta(props: {
   precio: number;
   linea: ReactNode;
   insignias: ReactNode;
+  tienda: string | null;
 }) {
   return (
     <a
@@ -32,7 +33,9 @@ function Tarjeta(props: {
       )}
       <div className="min-w-0 flex-1">
         <p className="line-clamp-2 leading-snug font-medium">{props.nombre}</p>
-        {props.presentacion && <p className="text-sm text-texto-suave">{props.presentacion}</p>}
+        <p className="text-sm text-texto-suave">
+          {[props.presentacion, props.tienda && `en ${props.tienda}`].filter(Boolean).join(' · ')}
+        </p>
         <p className="mt-1">
           <span className="text-lg font-semibold">{pesos(props.precio)}</span>{' '}
           <span className="text-sm text-texto-suave">{props.linea}</span>
@@ -68,7 +71,8 @@ export function TarjetaHallazgo({ h }: { h: HallazgoEnFeed }) {
       nombre={h.nombre}
       presentacion={h.presentacion}
       imagenUrl={h.imagenUrl}
-      href={urlProductoRappi(h.nombre, h.idExternoTienda)}
+      href={urlProductoRappi(h.nombre, h.tienda.idExterno, h.tienda.tipo)}
+      tienda={h.tienda.nombre}
       precio={h.precio}
       linea={
         h.precioReferencia && h.ratio !== null
@@ -93,7 +97,8 @@ export function TarjetaDescuento({ d }: { d: DescuentoAnunciado }) {
       nombre={d.nombre}
       presentacion={d.presentacion}
       imagenUrl={d.imagenUrl}
-      href={urlProductoRappi(d.nombre, d.idExternoTienda)}
+      href={urlProductoRappi(d.nombre, d.tienda.idExterno, d.tienda.tipo)}
+      tienda={d.tienda.nombre}
       precio={d.precio}
       linea={`tachado ${pesos(d.precioLista)} · ${porcentajeMenos(d.ratioLista)} menos`}
       insignias={<Insignia tono="neutro">Según Rappi · sin verificar</Insignia>}

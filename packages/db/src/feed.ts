@@ -31,6 +31,7 @@ export async function misDirecciones(c: ClienteUsuario): Promise<DireccionDelUsu
 
 export interface TiendaDelUsuario {
   readonly id: string;
+  readonly tipo: string;
   readonly idExterno: string;
   readonly nombre: string | null;
   readonly primeraCorridaOkAt: string | null;
@@ -41,10 +42,11 @@ export interface TiendaDelUsuario {
 export async function misTiendas(c: ClienteUsuario): Promise<TiendaDelUsuario[]> {
   const { data, error } = await c
     .from('tiendas')
-    .select('id, id_externo, nombre, primera_corrida_ok_at, ultima_corrida_ok_at');
+    .select('id, tipo, id_externo, nombre, primera_corrida_ok_at, ultima_corrida_ok_at');
   if (error) throw new Error(`No se pudieron leer tus tiendas: ${error.message}`);
   return data.map((t) => ({
     id: t.id,
+    tipo: t.tipo,
     idExterno: t.id_externo,
     nombre: t.nombre,
     primeraCorridaOkAt: t.primera_corrida_ok_at,
@@ -56,7 +58,7 @@ export interface ProductoEnFeed {
   readonly nombre: string;
   readonly presentacion: string | null;
   readonly imagenUrl: string | null;
-  readonly idExternoTienda: string;
+  readonly tienda: { readonly idExterno: string; readonly tipo: string; readonly nombre: string | null };
 }
 
 export interface HallazgoEnFeed extends ProductoEnFeed {
@@ -70,16 +72,26 @@ export interface HallazgoEnFeed extends ProductoEnFeed {
   readonly detectadoAt: string;
 }
 
+/** Lo que el usuario eligio mirar (spec 003): una categoria comun y/o un texto en el nombre. */
+export interface FiltroFeed {
+  readonly categoria?: string | null;
+  readonly texto?: string | null;
+}
+
+/** Un texto del usuario dentro de un `ilike`: `%` y `_` son comodines, se escapan. */
+export const patronIlike = (texto: string) => `%${texto.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
+
 /** Los hallazgos abiertos, ya calculados por el crawler. Ordenados por ratio: mas descuento primero. */
-export async function hallazgosVigentes(c: ClienteUsuario, limite = 100): Promise<HallazgoEnFeed[]> {
-  const { data, error } = await c
+export async function hallazgosVigentes(c: ClienteUsuario, filtro: FiltroFeed = {}, limite = 100): Promise<HallazgoEnFeed[]> {
+  let q = c
     .from('hallazgos')
     .select(
-      'id, producto_id, regla, precio, precio_referencia, ratio, estado_oferta, detectado_at, productos(nombre, presentacion, imagen_url), tiendas(id_externo)',
+      'id, producto_id, regla, precio, precio_referencia, ratio, estado_oferta, detectado_at, productos!inner(nombre, presentacion, imagen_url, categoria), tiendas(id_externo, tipo, nombre)',
     )
-    .is('cerrado_at', null)
-    .order('ratio', { ascending: true, nullsFirst: false })
-    .limit(limite);
+    .is('cerrado_at', null);
+  if (filtro.categoria) q = q.eq('productos.categoria', filtro.categoria);
+  if (filtro.texto) q = q.ilike('productos.nombre', patronIlike(filtro.texto));
+  const { data, error } = await q.order('ratio', { ascending: true, nullsFirst: false }).limit(limite);
   if (error) throw new Error(`No se pudieron leer los hallazgos: ${error.message}`);
   return data.flatMap((h) =>
     h.productos && h.tiendas
@@ -96,7 +108,7 @@ export async function hallazgosVigentes(c: ClienteUsuario, limite = 100): Promis
             nombre: h.productos.nombre,
             presentacion: h.productos.presentacion,
             imagenUrl: h.productos.imagen_url,
-            idExternoTienda: h.tiendas.id_externo,
+            tienda: { idExterno: h.tiendas.id_externo, tipo: h.tiendas.tipo, nombre: h.tiendas.nombre },
           },
         ]
       : [],
@@ -114,15 +126,18 @@ export interface DescuentoAnunciado extends ProductoEnFeed {
  * Los mayores descuentos que ANUNCIA el proveedor (el precio tachado). No es una deteccion:
  * la web los muestra marcados "segun Rappi, sin verificar" (decision del dueño, 2026-10-08).
  */
-export async function descuentosAnunciados(c: ClienteUsuario, limite = 30): Promise<DescuentoAnunciado[]> {
-  const { data, error } = await c
+export async function descuentosAnunciados(c: ClienteUsuario, filtro: FiltroFeed = {}, limite = 30): Promise<DescuentoAnunciado[]> {
+  let q = c
     .from('precios_actuales')
-    .select('producto_id, precio, precio_lista, ratio_lista, productos(nombre, presentacion, imagen_url), tiendas(id_externo)')
+    .select(
+      'producto_id, precio, precio_lista, ratio_lista, productos!inner(nombre, presentacion, imagen_url, categoria), tiendas(id_externo, tipo, nombre)',
+    )
     .eq('en_stock', true)
     .eq('promo_kind', 'descuento_lista')
-    .not('ratio_lista', 'is', null)
-    .order('ratio_lista', { ascending: true })
-    .limit(limite);
+    .not('ratio_lista', 'is', null);
+  if (filtro.categoria) q = q.eq('productos.categoria', filtro.categoria);
+  if (filtro.texto) q = q.ilike('productos.nombre', patronIlike(filtro.texto));
+  const { data, error } = await q.order('ratio_lista', { ascending: true }).limit(limite);
   if (error) throw new Error(`No se pudieron leer los descuentos: ${error.message}`);
   return data.flatMap((p) =>
     p.productos && p.tiendas && p.precio_lista !== null && p.ratio_lista !== null
@@ -135,7 +150,7 @@ export async function descuentosAnunciados(c: ClienteUsuario, limite = 30): Prom
             nombre: p.productos.nombre,
             presentacion: p.productos.presentacion,
             imagenUrl: p.productos.imagen_url,
-            idExternoTienda: p.tiendas.id_externo,
+            tienda: { idExterno: p.tiendas.id_externo, tipo: p.tiendas.tipo, nombre: p.tiendas.nombre },
           },
         ]
       : [],
@@ -154,4 +169,36 @@ export async function crearDireccion(
   if (!error) return { ok: true };
   // unique (usuario_id, etiqueta): ya tiene una "Casa".
   return { ok: false, motivo: error.code === '23505' ? 'etiqueta_repetida' : 'otro' };
+}
+
+/** Una direccion propia, con sus coordenadas, para editarla. RLS: solo la del usuario. */
+export async function obtenerDireccion(
+  c: ClienteUsuario,
+  id: string,
+): Promise<{ id: string; etiqueta: string; texto: string; lat: number; lng: number } | null> {
+  const { data, error } = await c.from('direcciones').select('id, etiqueta, texto, lat, lng').eq('id', id).maybeSingle();
+  if (error) throw new Error(`No se pudo leer la direccion: ${error.message}`);
+  return data;
+}
+
+/**
+ * Edita nombre, referencia y ubicacion. Si la ubicacion cambia, el trigger de la 0016 borra sus
+ * tiendas y la vuelve a pendiente. Devuelve si se movio, para disparar el buscador.
+ */
+export async function actualizarDireccion(
+  c: ClienteUsuario,
+  id: string,
+  d: { etiqueta: string; texto: string; lat: number; lng: number },
+): Promise<{ ok: true; movida: boolean } | { ok: false; motivo: 'etiqueta_repetida' | 'otro' }> {
+  const antes = await obtenerDireccion(c, id);
+  if (!antes) return { ok: false, motivo: 'otro' };
+  const { error } = await c.from('direcciones').update(d).eq('id', id);
+  if (error) return { ok: false, motivo: error.code === '23505' ? 'etiqueta_repetida' : 'otro' };
+  return { ok: true, movida: antes.lat !== d.lat || antes.lng !== d.lng };
+}
+
+/** Borra la direccion; sus suscripciones se van con ella (0016, `on delete cascade`). */
+export async function borrarDireccion(c: ClienteUsuario, id: string): Promise<boolean> {
+  const { error, count } = await c.from('direcciones').delete({ count: 'exact' }).eq('id', id);
+  return !error && count === 1;
 }

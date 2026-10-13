@@ -10,8 +10,9 @@ import type {
   TiendaResuelta,
   Ubicacion,
 } from '../contrato.js';
-import { pasillos, productos, subPasillos, tiendaTurbo, type Grupo } from './extraer.js';
+import { pasillos, productos, subPasillos, tiendasRappi, type Grupo } from './extraer.js';
 import { POLITICAS_RAPPI, SUBPASILLOS_VIDRIERA } from './politicas.js';
+import { padreRappi, tipoTiendaRappi } from './tiendas.js';
 import { urlProductoRappi } from './url.js';
 
 const BASE = 'https://services.rappi.com.ar';
@@ -98,8 +99,8 @@ export function crearRappi(config: ConfigRappi): Proveedor {
     state: {
       lat: String(t.consulta.lat),
       lng: String(t.consulta.lng),
-      store_type: 'turbo',
-      parent_store_type: 'turbo_home',
+      store_type: t.tipo,
+      parent_store_type: padreRappi(t.tipo),
       ...extra,
     },
     stores: [Number(t.idExterno)],
@@ -113,23 +114,24 @@ export function crearRappi(config: ConfigRappi): Proveedor {
     tipo: 'rappi',
     politicas: POLITICAS_RAPPI,
 
-    async resolverTienda(u: Ubicacion, ctx: CtxProveedor): Promise<TiendaResuelta | null> {
+    async resolverTiendas(u: Ubicacion, ctx: CtxProveedor): Promise<TiendaResuelta[]> {
       const pedir = sesion(ctx);
       const router = await pedir<unknown>({
         metodo: 'GET',
         url: `${BASE}/api/web-gateway/web/stores-router/available/principal/?lat=${u.lat}&lng=${u.lng}`,
         clave: 'stores_router',
       });
-      const turbo = tiendaTurbo(router);
-      if (!turbo) return null;
       // Se consulta con la ubicacion de la TIENDA si Rappi la da: es un dato publico del
       // comercio, y asi la base no guarda ni siquiera aproximada la ubicacion de nadie.
-      const consulta =
-        turbo.lat !== null && turbo.lng !== null
-          ? { lat: turbo.lat, lng: turbo.lng }
-          : { lat: redondear(u.lat), lng: redondear(u.lng) };
-      return { idExterno: turbo.idExterno, nombre: 'Rappi Turbo', consulta };
+      return tiendasRappi(router).map((t) => ({
+        tipo: t.tipo,
+        idExterno: t.idExterno,
+        nombre: tipoTiendaRappi(t.tipo)?.nombre ?? null,
+        consulta: t.lat !== null && t.lng !== null ? { lat: t.lat, lng: t.lng } : { lat: redondear(u.lat), lng: redondear(u.lng) },
+      }));
     },
+
+    cadenciaMinutos: (tipo) => tipoTiendaRappi(tipo)?.cadenciaMinutos ?? 240,
 
     async *recorrer(t: TiendaResuelta, ctx: CtxProveedor): AsyncIterable<LoteProductos> {
       const pedir = sesion(ctx);
@@ -192,7 +194,7 @@ export function crearRappi(config: ConfigRappi): Proveedor {
       }
     },
 
-    urlProducto: (p, t) => urlProductoRappi(p.nombre, t.idExterno),
+    urlProducto: (p, t) => urlProductoRappi(p.nombre, t.idExterno, t.tipo),
 
     claveCanonica: (p) => {
       if (p.ean) return { clave: `ean:${p.ean}`, origen: 'ean' };

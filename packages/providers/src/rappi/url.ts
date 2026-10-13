@@ -3,5 +3,5 @@
  * elige la tienda, que puede no ser la que tiene el precio: por eso es una busqueda dentro de
  * la tienda. Vive aparte para que la web lo importe sin traer el cliente HTTP.
  */
-export const urlProductoRappi = (nombre: string, idExternoTienda: string): string =>
-  `https://www.rappi.com.ar/tiendas/${idExternoTienda}-turbo/s?term=${encodeURIComponent(nombre)}`;
+export const urlProductoRappi = (nombre: string, idExternoTienda: string, tipo: string): string =>
+  `https://www.rappi.com.ar/tiendas/${idExternoTienda}-${tipo}/s?term=${encodeURIComponent(nombre)}`;

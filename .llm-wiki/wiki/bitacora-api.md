@@ -71,3 +71,41 @@ Rappi" y pasa a ser un hecho fechado. La spec 001 arranca sobre terreno firme.
   se leyo igual con la tienda cerrada (`available: false`, `in_stock: true`).
 - Corrida completa de la 266872: **3.704 productos en 112 s, 0 grupos fallidos**, con 600 ms
   entre requests. 1.034 con precio tachado; el mayor descuento anunciado, 55%.
+
+## 2026-10-08 — Rappi: los supermercados usan la misma API, y la presentacion a veces miente
+
+**Sintoma:** ninguno; verificado antes de la spec 002.
+**Causa:** —
+**Arreglo:** `packages/providers/src/rappi/tiendas.ts` y `presentacionRappi`.
+**Evidencia:** sondas en vivo desde la zona del Obelisco, 23:00-00:30 ART:
+
+- De noche el router lista Jumbo (247105), Disco, Vea, Carrefour (127153), Carrefour Express,
+  Coto (130340), Dia (243771) y Farmacity, todos con `is_open: true`. El mismo
+  `dynamic/context/content` devuelve su catalogo con `store_type` y `parent_store_type` = el tipo.
+- Tamaño de catalogo: Jumbo 6.779, Disco 6.013, Vea 5.449, Carrefour 2.846, Carrefour Express
+  6.768, Coto 14.468, Dia 2.862, Farmacity 6.183.
+- `master_product_id` compartido: 54 gaseosas en comun entre Jumbo y Coto, 39 tambien en Turbo.
+- `corrida:seca` de Dia: 2.953 productos en 84 s. Aparecieron datos malos de Rappi:
+  "1 x 45261 L" en un vino (`quantity: 1.12`, `unit_type: l`) — corregido usando lo
+  estructurado; y "1 X 15 L" en aguas saborizadas con `quantity: 15` tambien — **sin arreglo**:
+  los dos campos dicen lo mismo. Chorizos "1 x 400 g" a $260 con `sale_type: U`: es el dato
+  publicado (el chorizo de marca Dia de 300 g estaba a $3.600); se reporta tal cual.
+
+## 2026-10-13 — Rappi: hay 10 tiendas que se llaman "Turbo"
+
+**Sintoma:** en la casa del dueño el buscador decia "sin cobertura" y en su celular Turbo llegaba.
+**Causa:** la app llama "Turbo" a 10 `store_type` distintos. El buscador solo aceptaba `turbo`;
+en ese punto (49 m afuera de la zona de la clasica) el router devuelve `turbo_veinticuatro_nc`,
+`turbo_veinticuatro_market_nc` y `turbo_veinticuatro_express_nc`, no `turbo`.
+**Arreglo:** spec 003: `TIENDAS_RAPPI` suma `turbo_veinticuatro_nc` ("Rappi Turbo 24 hs").
+**Evidencia:** sonda del router en los dos puntos de la casa (coordenadas no se registran), y
+`aisles_tree` de cada Turbo: clasica 7.094 productos, 24 hs 7.248-8.300, Express 7.128, Carnes
+5.722, Discounter 4.732, Supermercado 4.283, 24 hs Market 5.528-6.458, 24 hs Express 3.049-3.404,
+Mascotas 590, Ecommerce 393. Todas responden con `parent_store_type` = su tipo.
+
+## 2026-10-13 — GitHub Actions: el cron corre 4-5 veces por dia, no 48
+
+**Sintoma:** en `corridas`, del 08 al 13/10, una corrida cada 3 a 9 horas.
+**Causa:** GitHub atrasa y saltea los `schedule` (documentado por GitHub; peor en horas pico).
+**Arreglo:** spec 003, migracion 0017: `pg_cron` + `pg_net` en Supabase disparan
+`workflow_dispatch` cada 30 min. El `schedule` de GitHub queda de respaldo.

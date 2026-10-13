@@ -3,9 +3,9 @@ import Link from 'next/link';
 import { crearClienteServidor } from '@/lib/supabase/servidor';
 
 const ESTADO: Record<DireccionDelUsuario['estado'], string> = {
-  buscando_tienda: 'Buscando su tienda de Rappi',
+  buscando_tienda: 'Buscando sus tiendas de Rappi',
   resuelta: 'Buscando ofertas',
-  sin_cobertura: 'Rappi Turbo no llega acá',
+  sin_cobertura: 'Rappi no llega acá',
 };
 
 export default async function PaginaDirecciones() {
@@ -18,9 +18,14 @@ export default async function PaginaDirecciones() {
       {direcciones.length > 0 && (
         <ul className="divide-y divide-borde rounded-xl border border-borde bg-superficie">
           {direcciones.map((d) => (
-            <li key={d.id} className="flex min-h-14 items-center justify-between gap-4 px-4 py-3">
-              <span className="font-medium">{d.etiqueta}</span>
-              <span className="text-right text-sm text-texto-suave">{ESTADO[d.estado]}</span>
+            <li key={d.id}>
+              <Link href={`/direcciones/${d.id}`} className="flex min-h-14 items-center justify-between gap-4 px-4 py-3">
+                <span>
+                  <span className="block font-medium">{d.etiqueta}</span>
+                  <span className="block text-sm text-texto-suave">{ESTADO[d.estado]}</span>
+                </span>
+                <span className="text-sm font-medium text-acento">Editar</span>
+              </Link>
             </li>
           ))}
         </ul>

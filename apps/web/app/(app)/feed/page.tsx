@@ -5,10 +5,11 @@ import {
   misTiendas,
   type DireccionDelUsuario,
 } from '@buscapromos/db';
-import { PARAMETROS } from '@buscapromos/core';
+import { CATEGORIAS, PARAMETROS } from '@buscapromos/core';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { AutoRefresco } from '@/componentes/auto-refresco';
+import { FiltrosFeed } from '@/componentes/filtros-feed';
 import { TarjetaDescuento, TarjetaHallazgo } from '@/componentes/tarjetas';
 import { diaDeHistorial, primeroPorProducto } from '@/lib/formato';
 import { crearClienteServidor } from '@/lib/supabase/servidor';
@@ -18,7 +19,13 @@ import { crearClienteServidor } from '@/lib/supabase/servidor';
  * funciona justo cuando funciona como se diseño. Todo lo que muestra viene calculado de la
  * base (regla de oro 11): la pagina ordena y formatea, no detecta.
  */
-export default async function PaginaFeed() {
+export default async function PaginaFeed({ searchParams }: { searchParams: Promise<{ cat?: string; q?: string }> }) {
+  const { cat, q } = await searchParams;
+  // Solo categorias que existen: lo que viene en la URL lo escribio cualquiera.
+  const categoria = CATEGORIAS.some((c) => c.clave === cat) ? cat! : null;
+  const texto = q?.trim().slice(0, 60) || null;
+  const filtro = { categoria, texto };
+  const filtrando = categoria !== null || texto !== null;
   const supabase = await crearClienteServidor();
   const [direcciones, tiendas] = await Promise.all([misDirecciones(supabase), misTiendas(supabase)]);
 
@@ -43,7 +50,9 @@ export default async function PaginaFeed() {
   const esperando = buscandoTienda.length > 0 || primeraVez.length > 0;
 
   const [hallazgos, descuentos] =
-    recorridas.length > 0 ? await Promise.all([hallazgosVigentes(supabase), descuentosAnunciados(supabase)]) : [[], []];
+    recorridas.length > 0
+      ? await Promise.all([hallazgosVigentes(supabase, filtro), descuentosAnunciados(supabase, filtro)])
+      : [[], []];
   const porProducto = primeroPorProducto(hallazgos);
 
   // El dia del arranque ciego cuenta desde la tienda mas vieja: con una sola, es esa.
@@ -59,23 +68,29 @@ export default async function PaginaFeed() {
       {esperando && <AutoRefresco cadaSegundos={20} />}
 
       {buscandoTienda.length > 0 && (
-        <Aviso titulo={`Buscando tu tienda de Rappi para ${nombres(buscandoTienda)}`}>
-          <p>
-            El buscador arranca en un minuto y tarda unos minutos más. Si es de noche, Rappi Turbo puede estar
-            cerrado: lo volvemos a intentar cada media hora, y a la mañana lo encuentra.
-          </p>
+        <Aviso titulo={`Buscando tus tiendas de Rappi para ${nombres(buscandoTienda)}`}>
+          <p>El buscador arranca en un minuto: busca Rappi Turbo y los supermercados de Rappi que llegan a esa dirección.</p>
         </Aviso>
       )}
 
       {sinCobertura.length > 0 && (
-        <Aviso titulo={`Rappi Turbo no llega a ${nombres(sinCobertura)}`}>
-          <p>Lo intentamos durante un día y no apareció ninguna tienda Turbo para esa dirección.</p>
+        <Aviso titulo={`Rappi no llega a ${nombres(sinCobertura)}`}>
+          <p>Lo intentamos durante un día y no apareció ninguna de las tiendas que seguimos para esa dirección.</p>
+          <p className="mt-2">
+            <Link href="/direcciones" className="font-medium text-acento underline underline-offset-2">
+              Revisá la ubicación
+            </Link>{' '}
+            por si el pin quedó corrido.
+          </p>
         </Aviso>
       )}
 
       {primeraVez.length > 0 && buscandoTienda.length === 0 && (
         <Aviso titulo="Buscando por primera vez">
-          <p>Estamos recorriendo todo el catálogo de tu Rappi Turbo. Tarda unos minutos; esta página se actualiza sola.</p>
+          <p>
+            Estamos recorriendo {primeraVez.map((t) => t.nombre ?? t.tipo).join(', ')}. La primera vez tarda: los
+            supermercados tienen miles de productos. Esta página se actualiza sola.
+          </p>
         </Aviso>
       )}
 
@@ -85,23 +100,37 @@ export default async function PaginaFeed() {
             Juntando historial, día {dia} de {diasNecesarios}
           </p>
           <p className="mt-1 text-texto-suave">
-            Para saber si un precio es de verdad más bajo que el de siempre necesitamos verlo unos días. Por ahora solo
-            detectamos errores de precio y productos rarísimamente baratos para su góndola.
+            Para saber si un precio es de verdad más bajo que el de siempre necesitamos verlo unos días. Mientras tanto
+            detectamos errores de precio, productos rarísimamente baratos para su góndola, y lo que está a menos de la
+            mitad que en tus otras tiendas.
           </p>
         </div>
       )}
 
+      {recorridas.length > 0 && <FiltrosFeed categoria={categoria} texto={texto} />}
+
       {recorridas.length > 0 && (
         <section className="space-y-3">
-          <h2 className="font-semibold">Detectado por BuscaPromos</h2>
+          <div>
+            <h2 className="font-semibold">Detectado por BuscaPromos</h2>
+            <p className="mt-1 text-sm text-texto-suave">En {[...new Set(recorridas.map((t) => t.nombre ?? t.tipo))].join(', ')}.</p>
+          </div>
           {porProducto.length > 0 ? (
             porProducto.map((h) => <TarjetaHallazgo key={h.id} h={h} />)
           ) : (
             <p className="rounded-xl border border-borde bg-superficie p-4 text-texto-suave">
-              Nada raro por ahora. Es lo normal: avisamos cuando algo está muy por debajo de su precio de siempre.
+              {filtrando
+                ? 'Nada detectado con este filtro por ahora.'
+                : 'Nada raro por ahora. Es lo normal: avisamos cuando algo está muy por debajo de su precio de siempre.'}
             </p>
           )}
         </section>
+      )}
+
+      {filtrando && recorridas.length > 0 && descuentos.length === 0 && (
+        <p className="rounded-xl border border-borde bg-superficie p-4 text-texto-suave">
+          Rappi no anuncia descuentos con este filtro.
+        </p>
       )}
 
       {descuentos.length > 0 && (
@@ -114,7 +143,7 @@ export default async function PaginaFeed() {
             </p>
           </div>
           {descuentos.map((d) => (
-            <TarjetaDescuento key={`${d.idExternoTienda}-${d.productoId}`} d={d} />
+            <TarjetaDescuento key={d.productoId} d={d} />
           ))}
         </section>
       )}

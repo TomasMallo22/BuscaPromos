@@ -46,82 +46,128 @@ async function paginado<T>(
 // ---------------------------------------------------------------------------
 
 /** DATOS PERSONALES: lat/lng de la casa de alguien. Nunca a un log (regla de oro 14). */
-export interface DireccionPendiente {
+export interface DireccionAResolver {
   readonly id: string;
   readonly usuarioId: string;
   readonly lat: number;
   readonly lng: number;
   readonly creadaAt: number;
+  /** `null` si nunca encontro ninguna tienda. */
+  readonly resueltaAt: number | null;
+  /** El primer intento sin tiendas hecho de dia (spec 003, E9). */
+  readonly falloDiurnoAt: number | null;
 }
 
-export async function direccionesPendientes(c: ClienteServicio): Promise<DireccionPendiente[]> {
+/** Cada cuanto se vuelve a preguntar que tiendas hay: asi Turbo se suma a la mañana (spec 002, E2). */
+const RE_RESOLVER_CADA_S = 3600;
+
+/** Una direccion "sin cobertura" se reintenta una vez por dia: Rappi abre zonas (spec 003). */
+const REINTENTAR_SIN_COBERTURA_S = 24 * 3600;
+
+/**
+ * Las direcciones nuevas, las que hace mas de una hora que no se re-resuelven, y las "sin
+ * cobertura" de hace mas de un dia.
+ */
+export async function direccionesAResolver(c: ClienteServicio): Promise<DireccionAResolver[]> {
+  const ahora = Math.floor(Date.now() / 1000);
+  const hace = aTimestamp(ahora - RE_RESOLVER_CADA_S);
+  const haceUnDia = aTimestamp(ahora - REINTENTAR_SIN_COBERTURA_S);
   const { data, error } = await c
     .from('direcciones')
-    .select('id, usuario_id, lat, lng, creada_at')
+    .select('id, usuario_id, lat, lng, creada_at, resuelta_at, fallo_diurno_at')
     .eq('activa', true)
-    .is('resuelta_at', null)
-    .is('sin_cobertura_at', null)
+    .or(
+      `and(sin_cobertura_at.is.null,or(resuelta_at.is.null,resuelta_at.lt.${hace})),sin_cobertura_at.lt.${haceUnDia}`,
+    )
     .order('creada_at');
-  if (error) fallar('direcciones pendientes', error);
-  return data.map((d) => ({ id: d.id, usuarioId: d.usuario_id, lat: d.lat, lng: d.lng, creadaAt: aEpoch(d.creada_at) }));
+  if (error) fallar('direcciones a resolver', error);
+  return data.map((d) => ({
+    id: d.id,
+    usuarioId: d.usuario_id,
+    lat: d.lat,
+    lng: d.lng,
+    creadaAt: aEpoch(d.creada_at),
+    resueltaAt: d.resuelta_at ? aEpoch(d.resuelta_at) : null,
+    falloDiurnoAt: d.fallo_diurno_at ? aEpoch(d.fallo_diurno_at) : null,
+  }));
+}
+
+/** El primer intento de dia sin tiendas: sin el, nunca se marca "sin cobertura". */
+export async function marcarFalloDiurno(c: ClienteServicio, direccionId: string): Promise<void> {
+  const { error } = await c.from('direcciones').update({ fallo_diurno_at: new Date().toISOString() }).eq('id', direccionId);
+  if (error) fallar('marcar fallo diurno', error);
 }
 
 export interface TiendaParaRegistrar {
   readonly proveedorId: string;
+  readonly tipo: string;
   readonly idExterno: string;
   readonly nombre: string | null;
   readonly consulta: { readonly lat: number; readonly lng: number };
 }
 
 /**
- * La direccion encontro tienda: se crea la tienda si no existia (la comparten todos los que
- * caen en ella, E22), se vincula, y el usuario queda suscripto.
+ * Las tiendas que el router ofrece para esa direccion: se crean si no existian (las comparten
+ * todos los que caen en ellas), se vinculan y el usuario queda suscripto. Devuelve cuantas son
+ * nuevas para esa direccion. Las que ya estaban y hoy no vinieron NO se tocan: Rappi esconde
+ * tiendas que siguen existiendo (spec 002, E6).
  */
-export async function registrarTiendaResuelta(
+export async function registrarTiendasResueltas(
   c: ClienteServicio,
-  direccion: DireccionPendiente,
-  tienda: TiendaParaRegistrar,
-): Promise<string> {
-  const existente = await c
-    .from('tiendas')
-    .select('id')
-    .eq('proveedor_id', tienda.proveedorId)
-    .eq('id_externo', tienda.idExterno)
-    .maybeSingle();
-  if (existente.error) fallar('buscar tienda', existente.error);
-  let tiendaId = existente.data?.id;
-  if (!tiendaId) {
-    const nueva = await c
+  direccion: DireccionAResolver,
+  tiendas: readonly TiendaParaRegistrar[],
+): Promise<number> {
+  let nuevas = 0;
+  for (const tienda of tiendas) {
+    const existente = await c
       .from('tiendas')
-      .insert({
-        proveedor_id: tienda.proveedorId,
-        id_externo: tienda.idExterno,
-        nombre: tienda.nombre,
-        lat_consulta: tienda.consulta.lat,
-        lng_consulta: tienda.consulta.lng,
-      })
       .select('id')
-      .single();
-    if (nueva.error) fallar('crear tienda', nueva.error);
-    tiendaId = nueva.data.id;
+      .eq('proveedor_id', tienda.proveedorId)
+      .eq('id_externo', tienda.idExterno)
+      .maybeSingle();
+    if (existente.error) fallar('buscar tienda', existente.error);
+    let tiendaId = existente.data?.id;
+    if (!tiendaId) {
+      const nueva = await c
+        .from('tiendas')
+        .insert({
+          proveedor_id: tienda.proveedorId,
+          tipo: tienda.tipo,
+          id_externo: tienda.idExterno,
+          nombre: tienda.nombre,
+          lat_consulta: tienda.consulta.lat,
+          lng_consulta: tienda.consulta.lng,
+        })
+        .select('id')
+        .single();
+      if (nueva.error) fallar('crear tienda', nueva.error);
+      tiendaId = nueva.data.id;
+    }
+
+    const vinculo = await c
+      .from('direcciones_tiendas')
+      .upsert({ direccion_id: direccion.id, tienda_id: tiendaId }, { onConflict: 'direccion_id,tienda_id', ignoreDuplicates: true })
+      .select('tienda_id');
+    if (vinculo.error) fallar('vincular direccion y tienda', vinculo.error);
+    nuevas += vinculo.data.length;
+
+    // Una suscripcion por direccion y tienda (0016): se va con la direccion. ignoreDuplicates:
+    // si el usuario desactivo una suscripcion, la re-resolucion no la reactiva.
+    const suscripcion = await c
+      .from('suscripciones')
+      .upsert(
+        { usuario_id: direccion.usuarioId, tienda_id: tiendaId, direccion_id: direccion.id },
+        { onConflict: 'direccion_id,tienda_id', ignoreDuplicates: true },
+      );
+    if (suscripcion.error) fallar('suscribir', suscripcion.error);
   }
 
-  const vinculo = await c
-    .from('direcciones_tiendas')
-    .upsert({ direccion_id: direccion.id, tienda_id: tiendaId }, { onConflict: 'direccion_id,tienda_id' });
-  if (vinculo.error) fallar('vincular direccion y tienda', vinculo.error);
-
-  const suscripcion = await c
-    .from('suscripciones')
-    .upsert(
-      { usuario_id: direccion.usuarioId, tienda_id: tiendaId, direccion_id: direccion.id, activa: true },
-      { onConflict: 'usuario_id,tienda_id' },
-    );
-  if (suscripcion.error) fallar('suscribir', suscripcion.error);
-
-  const resuelta = await c.from('direcciones').update({ resuelta_at: new Date().toISOString() }).eq('id', direccion.id);
+  const resuelta = await c
+    .from('direcciones')
+    .update({ resuelta_at: new Date().toISOString(), sin_cobertura_at: null, fallo_diurno_at: null })
+    .eq('id', direccion.id);
   if (resuelta.error) fallar('marcar direccion resuelta', resuelta.error);
-  return tiendaId;
+  return nuevas;
 }
 
 export async function marcarSinCobertura(c: ClienteServicio, direccionId: string): Promise<void> {
@@ -132,32 +178,41 @@ export async function marcarSinCobertura(c: ClienteServicio, direccionId: string
 export interface TiendaActiva {
   readonly id: string;
   readonly proveedorId: string;
+  readonly tipo: string;
   readonly idExterno: string;
   readonly nombre: string | null;
   readonly consulta: { readonly lat: number; readonly lng: number };
   readonly primeraCorridaOk: boolean;
+  /** Epoch en segundos, o `null` si nunca termino bien una corrida. */
+  readonly ultimaCorridaOk: number | null;
 }
 
 /**
  * Las tiendas con al menos una suscripcion activa: la entrada del crawler, que no sabe que
- * existen usuarios. Primero las que nunca se recorrieron: es alguien esperando en el feed.
+ * existen usuarios. Primero las que nunca se recorrieron (alguien esperando en el feed), y
+ * dentro de cada grupo Turbo primero, que es la mas chica.
  */
 export async function tiendasActivas(c: ClienteServicio): Promise<TiendaActiva[]> {
   const { data, error } = await c
     .from('tiendas')
-    .select('id, proveedor_id, id_externo, nombre, lat_consulta, lng_consulta, primera_corrida_ok_at, suscripciones!inner(activa)')
+    .select(
+      'id, proveedor_id, tipo, id_externo, nombre, lat_consulta, lng_consulta, primera_corrida_ok_at, ultima_corrida_ok_at, suscripciones!inner(activa)',
+    )
     .eq('suscripciones.activa', true);
   if (error) fallar('tiendas activas', error);
+  const prioridad = (t: TiendaActiva) => Number(t.primeraCorridaOk) * 2 + Number(!t.tipo.startsWith('turbo'));
   return data
     .map((t) => ({
       id: t.id,
       proveedorId: t.proveedor_id,
+      tipo: t.tipo,
       idExterno: t.id_externo,
       nombre: t.nombre,
       consulta: { lat: t.lat_consulta, lng: t.lng_consulta },
       primeraCorridaOk: t.primera_corrida_ok_at !== null,
+      ultimaCorridaOk: t.ultima_corrida_ok_at ? aEpoch(t.ultima_corrida_ok_at) : null,
     }))
-    .sort((a, b) => Number(a.primeraCorridaOk) - Number(b.primeraCorridaOk));
+    .sort((a, b) => prioridad(a) - prioridad(b));
 }
 
 // ---------------------------------------------------------------------------
@@ -244,15 +299,17 @@ export interface ProductoParaGuardar {
   readonly presentacion: string | null;
   readonly imagenUrl: string | null;
   readonly categoriaPath: readonly string[];
+  /** La categoria comun (`categoriaComun` del core), para el filtro del feed. */
+  readonly categoria: string;
   readonly canonica: { readonly clave: string; readonly origen: 'ean' | 'rappi_master' | 'nombre_marca_presentacion' } | null;
 }
 
-/** Upsert del catalogo. Devuelve `idExterno -> productos.id`. */
+/** Upsert del catalogo. Devuelve `idExterno -> { id, canonicoId }`. */
 export async function guardarProductos(
   c: ClienteServicio,
   proveedorId: string,
   productos: readonly ProductoParaGuardar[],
-): Promise<Map<string, string>> {
+): Promise<Map<string, { id: string; canonicoId: string | null }>> {
   const canonicos = new Map<string, string>();
   const claves = [...new Map(productos.flatMap((p) => (p.canonica ? [[p.canonica.clave, p.canonica] as const] : []))).values()];
   for (const trozo of trozos(claves, LOTE)) {
@@ -264,7 +321,7 @@ export async function guardarProductos(
     for (const fila of data) canonicos.set(fila.clave, fila.id);
   }
 
-  const ids = new Map<string, string>();
+  const ids = new Map<string, { id: string; canonicoId: string | null }>();
   const ahora = new Date().toISOString();
   for (const trozo of trozos(productos, LOTE)) {
     const { data, error } = await c
@@ -278,14 +335,15 @@ export async function guardarProductos(
           presentacion: p.presentacion,
           imagen_url: p.imagenUrl,
           categoria_path: [...p.categoriaPath],
+          categoria: p.categoria,
           canonico_id: p.canonica ? (canonicos.get(p.canonica.clave) ?? null) : null,
           actualizado_at: ahora,
         })),
         { onConflict: 'proveedor_id,id_externo' },
       )
-      .select('id, id_externo');
+      .select('id, id_externo, canonico_id');
     if (error) fallar('guardar productos', error);
-    for (const fila of data) ids.set(fila.id_externo, fila.id);
+    for (const fila of data) ids.set(fila.id_externo, { id: fila.id, canonicoId: fila.canonico_id });
   }
   return ids;
 }
@@ -400,6 +458,42 @@ export async function historial(
       const serie = out.get(f.producto_id) ?? [];
       serie.push({ productoId: f.producto_id, ts: aEpoch(f.ts), precio: f.precio, promoKind: f.promo_kind, enStock: f.en_stock });
       out.set(f.producto_id, serie);
+    }
+  }
+  return out;
+}
+
+/**
+ * El precio actual del mismo producto canonico en las OTRAS tiendas, para `vs_otras_tiendas`
+ * (spec 002). Solo en stock y sin las promos que el proveedor excluye: un precio que no esta a
+ * la venta no es referencia (docs/04, las cuatro exclusiones).
+ */
+export async function preciosEnOtrasTiendas(
+  c: ClienteServicio,
+  tiendaId: string,
+  canonicoIds: readonly string[],
+  promosExcluidas: readonly PromoKind[],
+): Promise<Map<string, number[]>> {
+  const canonicoDe = new Map<string, string>();
+  for (const trozo of trozos(canonicoIds, IDS_POR_PEDIDO)) {
+    const { data, error } = await c.from('productos').select('id, canonico_id').in('canonico_id', trozo);
+    if (error) fallar('productos por canonico', error);
+    for (const p of data) if (p.canonico_id) canonicoDe.set(p.id, p.canonico_id);
+  }
+  const out = new Map<string, number[]>();
+  for (const trozo of trozos([...canonicoDe.keys()], IDS_POR_PEDIDO)) {
+    let q = c
+      .from('precios_actuales')
+      .select('producto_id, precio')
+      .in('producto_id', trozo)
+      .neq('tienda_id', tiendaId)
+      .eq('en_stock', true);
+    for (const promo of promosExcluidas) q = q.neq('promo_kind', promo);
+    const { data, error } = await q;
+    if (error) fallar('precios en otras tiendas', error);
+    for (const f of data) {
+      const canonico = canonicoDe.get(f.producto_id)!;
+      out.set(canonico, [...(out.get(canonico) ?? []), f.precio]);
     }
   }
   return out;

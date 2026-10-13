@@ -24,6 +24,19 @@ proveedor**. Imprime los hallazgos en el `GITHUB_STEP_SUMMARY`.
 
 **El cron solo corre en la branch por defecto**, que tiene que ser `main`.
 
+**Y no es confiable:** del 08 al 13/10 corrio 4-5 veces por dia en vez de 48, con huecos de
+hasta 9 horas. Desde la spec 003 el disparo principal es Supabase: `pg_cron` llama a
+`private.disparar_corrida()` en los minutos 7 y 37, que hace el `workflow_dispatch` con el token
+guardado en **Vault** con el nombre `github_token_corrida` (el mismo token fine-grained de
+Vercel). Sin ese secret no hace nada. Para ver si anda: `select * from net._http_response order
+by created desc limit 5` (204 = disparado).
+
+## Cada tienda a su ritmo (spec 002)
+
+El cron corre cada 30 minutos, pero cada corrida recorre solo las tiendas a las que les toca:
+Turbo cada 30 minutos, los supermercados cada 4 horas (`TIENDAS_RAPPI`). Las direcciones se
+re-consultan cada hora, asi una tienda que no estaba (Turbo de noche) se suma sola.
+
 ## Rappi de noche
 
 El router de tiendas no lista la Turbo cuando esta cerrada (verificado el 2026-10-08 a las

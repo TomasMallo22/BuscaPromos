@@ -7,8 +7,9 @@
  * anidamiento y verifica que se encuentran los mismos productos (E8 de la spec 001).
  */
 import { z } from 'zod';
-import type { PromoKind } from '@buscapromos/core';
+import { parsearPresentacion, type PromoKind } from '@buscapromos/core';
 import type { ProductoNormalizado } from '../contrato.js';
+import { TIENDAS_RAPPI, tipoTiendaRappi } from './tiendas.js';
 
 type Objeto = Record<string, unknown>;
 const esObjeto = (x: unknown): x is Objeto => typeof x === 'object' && x !== null;
@@ -24,19 +25,28 @@ function* caminar(x: unknown): Generator<Objeto> {
 }
 
 /**
- * La tienda Turbo de una ubicacion: el primer nodo con `store_type === 'turbo'` y `store_id`.
- * `null` si no hay. Ojo: de noche, con Turbo cerrado, el router no la lista (verificado el
- * 2026-10-08 a las 22:37 ART): `null` no quiere decir "sin cobertura".
+ * Las tiendas de la lista (`TIENDAS_RAPPI`) que el router ofrece en una ubicacion: la primera de
+ * cada tipo, en el orden de la lista. Ojo: de noche Rappi esconde la Turbo (verificado el
+ * 2026-10-08 a las 22:37 ART); que no venga no quiere decir que no exista.
  */
-export function tiendaTurbo(router: unknown): { idExterno: string; lat: number | null; lng: number | null } | null {
+export function tiendasRappi(router: unknown): Array<{ tipo: string; idExterno: string; lat: number | null; lng: number | null }> {
+  const porTipo = new Map<string, { tipo: string; idExterno: string; lat: number | null; lng: number | null }>();
   for (const nodo of caminar(router)) {
-    if (nodo['store_type'] === 'turbo' && nodo['store_id'] !== undefined && nodo['store_id'] !== null) {
-      const lat = typeof nodo['lat'] === 'number' ? nodo['lat'] : null;
-      const lng = typeof nodo['lng'] === 'number' ? nodo['lng'] : null;
-      return { idExterno: String(nodo['store_id']), lat, lng };
-    }
+    const tipo = nodo['store_type'];
+    const id = nodo['store_id'];
+    if (typeof tipo !== 'string' || id === undefined || id === null) continue;
+    if (!tipoTiendaRappi(tipo) || porTipo.has(tipo)) continue;
+    porTipo.set(tipo, {
+      tipo,
+      idExterno: String(id),
+      lat: typeof nodo['lat'] === 'number' ? nodo['lat'] : null,
+      lng: typeof nodo['lng'] === 'number' ? nodo['lng'] : null,
+    });
   }
-  return null;
+  return TIENDAS_RAPPI.flatMap((t) => {
+    const encontrada = porTipo.get(t.tipo);
+    return encontrada ? [encontrada] : [];
+  });
 }
 
 export interface Grupo {
@@ -91,6 +101,9 @@ const productoRappi = z
     trademark: z.string().nullish(),
     image_url: z.string().nullish(),
     ean: z.string().nullish(),
+    quantity: z.number().nullish(),
+    unit_type: z.string().nullish(),
+    sale_type: z.string().nullish(),
   })
   .passthrough();
 
@@ -108,6 +121,43 @@ export function promoKindRappi(p: {
 
 const textoONull = (s: string | null | undefined): string | null => (s && s.trim() ? s.trim() : null);
 
+/** Las `unit_type` de Rappi que son peso o volumen. `und`, `mt` y `cm` no se comparan. */
+const MEDIBLES = new Set(['gr', 'g', 'kg', 'ml', 'cc', 'l', 'lt']);
+/** Hasta cuantas unidades se cree un multipack ("24 x 354 mL" existe; "45261 x" no). */
+const MAX_PACK = 24;
+
+/**
+ * Que presentacion usar para el precio por kilo o litro. Rappi manda dos: el texto
+ * (`presentation`) y la cantidad estructurada (`quantity` + `unit_type`), que es POR UNIDAD.
+ * En el pasillo Bebidas de Turbo coinciden 348 de 351. Cuando no:
+ *
+ * - multipack: "4 x 237 mL" con quantity 237. El texto es el correcto (el precio es del pack).
+ * - texto disparatado: "1 x 45261 L" en un vino de 1,12 L; "1 X 15 L" en un agua de 1,5 L. Lo
+ *   estructurado es el correcto: sin esto, nuevo_vs_pasillo los marca como regalados.
+ *
+ * Regla: el texto gana si coincide con lo estructurado, o si es un multipack EXPLICITO ("N x"
+ * y N veces la cantidad). Si no, lo estructurado. El parser es el del core: no se reimplementa.
+ */
+export function presentacionRappi(
+  texto: string | null | undefined,
+  cantidad: number | null | undefined,
+  unidad: string | null | undefined,
+): string | null {
+  const limpio = textoONull(texto);
+  const u = unidad?.toLowerCase() ?? '';
+  const estructurada = cantidad && cantidad > 0 && MEDIBLES.has(u) ? `${cantidad} ${u}` : null;
+  if (!limpio) return estructurada;
+  if (!estructurada) return limpio;
+  const delTexto = parsearPresentacion(limpio);
+  const real = parsearPresentacion(estructurada);
+  if (!delTexto || !real || delTexto.dimension !== real.dimension) return estructurada;
+  const veces = delTexto.cantidad / real.cantidad;
+  const multiplicador = Number(/^\s*(\d+)\s*[xX]/.exec(limpio)?.[1] ?? 1);
+  const k = Math.round(veces);
+  const esMultiplo = k >= 1 && k <= MAX_PACK && Math.abs(veces - k) / k < 0.05;
+  return esMultiplo && k === multiplicador ? limpio : estructurada;
+}
+
 /**
  * Los productos de una respuesta, normalizados. Duck-test: todo objeto con `product_id` y
  * `price` es un producto, este donde este. Si un producto aparece dos veces, cuenta una.
@@ -123,7 +173,7 @@ export function productos(respuesta: unknown, categoriaPath: readonly string[]):
       idExterno: id,
       nombre: p.name.trim(),
       marca: textoONull(p.trademark),
-      presentacion: textoONull(p.presentation),
+      presentacion: presentacionRappi(p.presentation, p.quantity, p.unit_type),
       imagenUrl: textoONull(p.image_url),
       ean: textoONull(p.ean),
       masterExterno: p.master_product_id ? String(p.master_product_id) : null,
@@ -133,6 +183,8 @@ export function productos(respuesta: unknown, categoriaPath: readonly string[]):
       promoKind: promoKindRappi(p),
       enStock: p.in_stock,
       stock: p.stock ?? null,
+      // "U" es por unidad; WW, WB, WP son por peso, y el precio no es el del paquete.
+      seVendePorPeso: Boolean(p.sale_type) && p.sale_type !== 'U',
     });
   }
   return [...porId.values()];

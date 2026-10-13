@@ -9,7 +9,7 @@ export default function PaginaNuevaDireccion() {
           ← Direcciones
         </Link>
         <h1 className="mt-2 text-lg font-semibold">Nueva dirección</h1>
-        <p className="mt-1 text-texto-suave">Buscamos ofertas en el Rappi Turbo que te llega ahí.</p>
+        <p className="mt-1 text-texto-suave">Buscamos ofertas en Rappi Turbo y en los supermercados de Rappi que te llegan ahí.</p>
       </div>
       <FormularioDireccion />
     </div>

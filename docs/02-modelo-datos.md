@@ -19,6 +19,9 @@ endpoint REST todo lo que esta en `public`.
 | `0012_corridas.sql` | `corridas`, `credenciales_proveedor` |
 | `0013_hallazgos.sql` | `hallazgos`, `alerta_estado`, `notificaciones` |
 | `0014_ratio_lista.sql` | `precios_actuales.ratio_lista`: el descuento que anuncia el proveedor, para el feed |
+| `0015_tienda_tipo.sql` | `tiendas.tipo`: el `store_type` de Rappi (Turbo, Turbo 24 hs, cada supermercado) |
+| `0016_direcciones_editables_y_categoria.sql` | una suscripcion por direccion (cascade), trigger que invalida las tiendas de una direccion movida, `direcciones.fallo_diurno_at`, `productos.categoria` |
+| `0017_disparo_cada_30_min.sql` | `pg_cron` + `pg_net`: dispara `corrida.yml` cada 30 min con el token de Vault |
 
 Las 0002 a 0006 del plan original se renumeraron a 0009+: la 0008 revoca los grants de todo
 `public`, y una tabla creada antes en orden de archivo los perderia en un `db reset`.

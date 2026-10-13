@@ -6,7 +6,8 @@ Una spec por iteracion. El ciclo de vida de cada una esta en [`../specs/README.m
 |---|---|---|
 | **000** | Andamiaje SDD + esqueleto | el dueño se loguea desde el celular y ve una pantalla vacia |
 | **001** | Rappi end-to-end, una direccion | recibe un Telegram con una promo real y la ve en la web |
-| **002** | Multiusuario y pantalla de direcciones | su pareja y un amigo entran y cargan sus direcciones |
+| **002** | Supermercados de Rappi (Jumbo, Disco, Vea, Carrefour, Coto, Dia, Farmacity) | ve ofertas de noche y `vs_otras_tiendas` encendido |
+| **002b** | Multiusuario: invitaciones y ajustes editables (la pantalla de direcciones ya entro en la 001) | su pareja y un amigo entran y cargan sus direcciones |
 | **003** | Robustez y observabilidad | el sistema avisa cuando se esta rompiendo |
 | **004** | VTEX: Jumbo, Disco, Vea, Carrefour, Dia, ChangoMas | promos de supermercado, y `vs_otras_tiendas` encendido |
 | **005** | SEPA como baseline | precio de referencia por EAN en ~3.600 comercios |
@@ -42,9 +43,8 @@ re-discutirlo cada tres meses.
 
 ## Lo que esta fuera de alcance, a proposito
 
-- **Geocoding.** El usuario pone un pin en un mapa (Leaflet + OSM) o pega el lat/lng de Google
-  Maps. Nominatim pide 1 req/s y atribucion; Google Places pide tarjeta. Para 10 usuarios con
-  2 direcciones cada uno, no se construye geocoding.
+- ~~**Geocoding.**~~ Entro en la spec 003 (2026-10-13): el GPS del celular no le alcanzaba al
+  dueño. Se usa Georef (datos.gob.ar), gratuita y sin clave, y el resultado se confirma en el mapa.
 - **Comparador de precios.** No es lo que hace este proyecto. Ver [`00-vision.md`](00-vision.md).
 - **App movil.** La web es mobile-first y se agrega a la pantalla de inicio.
 - **Carrito o compra automatica.** Se avisa; comprar lo hace una persona.
