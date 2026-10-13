@@ -15,6 +15,10 @@ export interface TipoTiendaRappi {
 
 export const TIENDAS_RAPPI: readonly TipoTiendaRappi[] = [
   { tipo: 'turbo', nombre: 'Rappi Turbo', cadenciaMinutos: 30 },
+  // La app tambien la llama "Turbo". Llega donde la clasica no (la casa del dueño, a 49 m del
+  // borde de su zona) y de noche. Hay 8 Turbo mas (Carnes, Discounter, Express...): afuera por
+  // volumen, decidido con el dueño el 2026-10-13 (spec 003).
+  { tipo: 'turbo_veinticuatro_nc', nombre: 'Rappi Turbo 24 hs', cadenciaMinutos: 30 },
   { tipo: 'jumbo', nombre: 'Jumbo', cadenciaMinutos: 240 },
   { tipo: 'disco', nombre: 'Disco', cadenciaMinutos: 240 },
   { tipo: 'vea', nombre: 'Vea', cadenciaMinutos: 240 },

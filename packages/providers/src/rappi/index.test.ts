@@ -177,6 +177,27 @@ describe('tiendasRappi', () => {
     expect(tiendasRappi(r).map((t) => t.tipo)).toEqual(['dia']);
   });
 
+  // Spec 003, E1: verificado el 2026-10-13 en la casa del dueño, a 49 m del borde de la Turbo clasica.
+  it('al borde de la zona de la Turbo clasica: la Turbo 24 hs', () => {
+    const r = router([
+      { store_type: 'turbo_veinticuatro_market_nc', store_id: '262659' },
+      { store_type: 'turbo_veinticuatro_nc', store_id: '239420' },
+      { store_type: 'jumbo', store_id: '247105' },
+    ]);
+    expect(tiendasRappi(r).map((t) => [t.tipo, t.idExterno])).toEqual([
+      ['turbo_veinticuatro_nc', '239420'],
+      ['jumbo', '247105'],
+    ]);
+  });
+
+  it('las Turbo especializadas (Carnes, Discounter...) quedan afuera por volumen', () => {
+    const r = router([
+      { store_type: 'turbo_carnes_nc', store_id: '229272' },
+      { store_type: 'turbo_discounter_nc', store_id: '229170' },
+    ]);
+    expect(tiendasRappi(r)).toEqual([]);
+  });
+
   it('Rappi Express no es la Turbo, y una tienda chica no esta en la lista', () => {
     expect(tiendasRappi(router([{ store_type: 'turbo_express_nc', store_id: '220673' }, { store_type: 'leocan_market_nc', store_id: '1' }]))).toEqual([]);
   });

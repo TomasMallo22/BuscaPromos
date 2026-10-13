@@ -5,7 +5,7 @@
  * Lo que se loguea son conteos. Nunca coordenadas, tokens ni nombres de usuario (regla de
  * oro 14): el log de Actions de un repo publico es publico.
  */
-import { indicePasillo, referenciaPasillo, type FilaPrecio, type ProductoPasillo } from '@buscapromos/core';
+import { categoriaComun, indicePasillo, referenciaPasillo, type FilaPrecio, type ProductoPasillo } from '@buscapromos/core';
 import {
   abrirHallazgos,
   alertasVigentes,
@@ -20,6 +20,7 @@ import {
   iniciarCorrida,
   leerCredencial,
   marcarCorridaOk,
+  marcarFalloDiurno,
   marcarSinCobertura,
   preciosActuales,
   preciosEnOtrasTiendas,
@@ -37,6 +38,7 @@ import {
   type Proveedor,
 } from '@buscapromos/providers';
 import {
+  decidirCobertura,
   detectarProducto,
   evaluarGuarda,
   faltantes,
@@ -46,9 +48,6 @@ import {
   tocaRecorrer,
   type ResultadoProducto,
 } from './planificar.js';
-
-/** De noche Rappi esconde la Turbo del router: "sin cobertura" recien despues de un dia sin encontrarla. */
-const ESPERA_SIN_COBERTURA_S = 24 * 3600;
 
 export interface Entorno {
   readonly db: ClienteServicio;
@@ -89,9 +88,17 @@ export async function resolverDirecciones(e: Entorno): Promise<void> {
         d,
         tiendas.map((t) => ({ proveedorId: e.proveedor.id, ...t })),
       );
-    } else if (d.resueltaAt === null && ahoraEpoch() - d.creadaAt > ESPERA_SIN_COBERTURA_S) {
-      await marcarSinCobertura(e.db, d.id);
-      sinCobertura++;
+    } else if (d.resueltaAt === null) {
+      // Nunca encontro tiendas. De noche Rappi esconde tiendas que existen: "sin cobertura"
+      // solo con un intento fallido de dia y mas de 24 h (spec 003, E9).
+      const decision = decidirCobertura(d, ahoraEpoch());
+      if (decision.marcarFalloDiurno) await marcarFalloDiurno(e.db, d.id);
+      if (decision.sinCobertura) {
+        await marcarSinCobertura(e.db, d.id);
+        sinCobertura++;
+      } else {
+        sinTiendaAhora++;
+      }
     } else {
       sinTiendaAhora++;
     }
@@ -126,7 +133,7 @@ export async function recorrerTienda(e: Entorno, tienda: TiendaActiva): Promise<
       const ids = await guardarProductos(
         e.db,
         e.proveedor.id,
-        lote.productos.map((p) => ({ ...p, canonica: e.proveedor.claveCanonica(p) })),
+        lote.productos.map((p) => ({ ...p, canonica: e.proveedor.claveCanonica(p), categoria: categoriaComun(p.categoriaPath) })),
       );
       const filas: FilaLote[] = [];
       for (const p of lote.productos) {

@@ -54,20 +54,31 @@ export interface DireccionAResolver {
   readonly creadaAt: number;
   /** `null` si nunca encontro ninguna tienda. */
   readonly resueltaAt: number | null;
+  /** El primer intento sin tiendas hecho de dia (spec 003, E9). */
+  readonly falloDiurnoAt: number | null;
 }
 
 /** Cada cuanto se vuelve a preguntar que tiendas hay: asi Turbo se suma a la mañana (spec 002, E2). */
 const RE_RESOLVER_CADA_S = 3600;
 
-/** Las direcciones nuevas y las que hace mas de una hora que no se re-resuelven. */
+/** Una direccion "sin cobertura" se reintenta una vez por dia: Rappi abre zonas (spec 003). */
+const REINTENTAR_SIN_COBERTURA_S = 24 * 3600;
+
+/**
+ * Las direcciones nuevas, las que hace mas de una hora que no se re-resuelven, y las "sin
+ * cobertura" de hace mas de un dia.
+ */
 export async function direccionesAResolver(c: ClienteServicio): Promise<DireccionAResolver[]> {
-  const hace = aTimestamp(Math.floor(Date.now() / 1000) - RE_RESOLVER_CADA_S);
+  const ahora = Math.floor(Date.now() / 1000);
+  const hace = aTimestamp(ahora - RE_RESOLVER_CADA_S);
+  const haceUnDia = aTimestamp(ahora - REINTENTAR_SIN_COBERTURA_S);
   const { data, error } = await c
     .from('direcciones')
-    .select('id, usuario_id, lat, lng, creada_at, resuelta_at')
+    .select('id, usuario_id, lat, lng, creada_at, resuelta_at, fallo_diurno_at')
     .eq('activa', true)
-    .is('sin_cobertura_at', null)
-    .or(`resuelta_at.is.null,resuelta_at.lt.${hace}`)
+    .or(
+      `and(sin_cobertura_at.is.null,or(resuelta_at.is.null,resuelta_at.lt.${hace})),sin_cobertura_at.lt.${haceUnDia}`,
+    )
     .order('creada_at');
   if (error) fallar('direcciones a resolver', error);
   return data.map((d) => ({
@@ -77,7 +88,14 @@ export async function direccionesAResolver(c: ClienteServicio): Promise<Direccio
     lng: d.lng,
     creadaAt: aEpoch(d.creada_at),
     resueltaAt: d.resuelta_at ? aEpoch(d.resuelta_at) : null,
+    falloDiurnoAt: d.fallo_diurno_at ? aEpoch(d.fallo_diurno_at) : null,
   }));
+}
+
+/** El primer intento de dia sin tiendas: sin el, nunca se marca "sin cobertura". */
+export async function marcarFalloDiurno(c: ClienteServicio, direccionId: string): Promise<void> {
+  const { error } = await c.from('direcciones').update({ fallo_diurno_at: new Date().toISOString() }).eq('id', direccionId);
+  if (error) fallar('marcar fallo diurno', error);
 }
 
 export interface TiendaParaRegistrar {
@@ -133,17 +151,21 @@ export async function registrarTiendasResueltas(
     if (vinculo.error) fallar('vincular direccion y tienda', vinculo.error);
     nuevas += vinculo.data.length;
 
-    // ignoreDuplicates: si el usuario desactivo una suscripcion, la re-resolucion no la reactiva.
+    // Una suscripcion por direccion y tienda (0016): se va con la direccion. ignoreDuplicates:
+    // si el usuario desactivo una suscripcion, la re-resolucion no la reactiva.
     const suscripcion = await c
       .from('suscripciones')
       .upsert(
         { usuario_id: direccion.usuarioId, tienda_id: tiendaId, direccion_id: direccion.id },
-        { onConflict: 'usuario_id,tienda_id', ignoreDuplicates: true },
+        { onConflict: 'direccion_id,tienda_id', ignoreDuplicates: true },
       );
     if (suscripcion.error) fallar('suscribir', suscripcion.error);
   }
 
-  const resuelta = await c.from('direcciones').update({ resuelta_at: new Date().toISOString() }).eq('id', direccion.id);
+  const resuelta = await c
+    .from('direcciones')
+    .update({ resuelta_at: new Date().toISOString(), sin_cobertura_at: null, fallo_diurno_at: null })
+    .eq('id', direccion.id);
   if (resuelta.error) fallar('marcar direccion resuelta', resuelta.error);
   return nuevas;
 }
@@ -178,7 +200,7 @@ export async function tiendasActivas(c: ClienteServicio): Promise<TiendaActiva[]
     )
     .eq('suscripciones.activa', true);
   if (error) fallar('tiendas activas', error);
-  const prioridad = (t: TiendaActiva) => Number(t.primeraCorridaOk) * 2 + Number(t.tipo !== 'turbo');
+  const prioridad = (t: TiendaActiva) => Number(t.primeraCorridaOk) * 2 + Number(!t.tipo.startsWith('turbo'));
   return data
     .map((t) => ({
       id: t.id,
@@ -277,6 +299,8 @@ export interface ProductoParaGuardar {
   readonly presentacion: string | null;
   readonly imagenUrl: string | null;
   readonly categoriaPath: readonly string[];
+  /** La categoria comun (`categoriaComun` del core), para el filtro del feed. */
+  readonly categoria: string;
   readonly canonica: { readonly clave: string; readonly origen: 'ean' | 'rappi_master' | 'nombre_marca_presentacion' } | null;
 }
 
@@ -311,6 +335,7 @@ export async function guardarProductos(
           presentacion: p.presentacion,
           imagen_url: p.imagenUrl,
           categoria_path: [...p.categoriaPath],
+          categoria: p.categoria,
           canonico_id: p.canonica ? (canonicos.get(p.canonica.clave) ?? null) : null,
           actualizado_at: ahora,
         })),

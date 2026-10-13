@@ -59,6 +59,28 @@ export function faltantes(
 export const subPasilloDe = (categoriaPath: readonly string[], nivel: number): string =>
   categoriaPath.slice(0, nivel).join(' › ');
 
+/** De 10 a 20 h ART todas las tiendas estan abiertas: un "no hay tiendas" a esa hora es creible. */
+const esHorarioDiurno = (epoch: number) => {
+  const hora = Math.floor(epoch / 3600 - 3) % 24; // Argentina, UTC-3 todo el año
+  return hora >= 10 && hora < 20;
+};
+
+/**
+ * Una direccion para la que Rappi no devolvio ninguna tienda: ¿es "sin cobertura" o hay que
+ * volver a intentar? Hace falta mas de un dia **y** al menos un intento fallido de dia: de noche
+ * Rappi esconde tiendas que existen (spec 003, E9; el bug del 09/10 fue marcarla con solo la
+ * primera condicion, en una corrida de las 05:49).
+ */
+export function decidirCobertura(
+  d: { creadaAt: number; falloDiurnoAt: number | null },
+  ahora: number,
+): { marcarFalloDiurno: boolean; sinCobertura: boolean } {
+  return {
+    marcarFalloDiurno: d.falloDiurnoAt === null && esHorarioDiurno(ahora),
+    sinCobertura: d.falloDiurnoAt !== null && ahora - d.creadaAt > 24 * 3600,
+  };
+}
+
 /** Margen para que el cron de :07 y :37 no saltee una tienda por segundos de diferencia. */
 const MARGEN_CADENCIA_S = 5 * 60;
 
