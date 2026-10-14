@@ -158,11 +158,11 @@ describe('evaluarReglas — descuento_extremo XOR gran_descuento', () => {
 
 describe('evaluarReglas — la acumulacion', () => {
   it('las reglas se acumulan en el orden del original', () => {
-    const e = entrada({ producto: producto(100, 1000), habitual: 700, oferta: REAL, mediana: { precio: 800, nTiendas: 4 } });
+    const e = entrada({ producto: producto(100, 1000), habitual: 700, oferta: REAL, mediana: { precio: 400, nTiendas: 4 } });
     expect(evaluarReglas(e)).toEqual([
       { regla: REGISTRY.caida_vs_historial.clave, precioReferencia: 700, ratio: 100 / 700, detalle: {} },
       { regla: REGISTRY.descuento_extremo.clave, precioReferencia: 1000, ratio: 0.1, detalle: {} },
-      { regla: REGISTRY.vs_otras_tiendas.clave, precioReferencia: 800, ratio: 0.125, detalle: { nTiendas: 4 } },
+      { regla: REGISTRY.vs_otras_tiendas.clave, precioReferencia: 400, ratio: 0.25, detalle: { nTiendas: 4 } },
     ]);
   });
 
@@ -177,6 +177,18 @@ describe('evaluarReglas — la acumulacion', () => {
 
   it('un habitual de 0 no dispara caida_vs_historial (no divide por cero)', () => {
     expect(reglas(entrada({ producto: producto(300, 0), habitual: 0 }))).toEqual([]);
+  });
+
+  it('mas de 75% abajo de las otras tiendas no es una oferta: es otro pack con la misma identidad', () => {
+    // Patagonia 24.7 lata: $5.130 en Dia; en Coto, Jumbo y Vea el mismo master es el pack de 6
+    // ($23.000 a $30.780) con la presentacion "1 x 473 mL" (2026-10-14).
+    expect(reglas(entrada({ producto: producto(5130, 0), mediana: { precio: 23850, nTiendas: 3 } }))).toEqual([]);
+  });
+
+  it('justo en el piso creible, dispara', () => {
+    expect(reglas(entrada({ producto: producto(250, 0), mediana: { precio: 1000, nTiendas: 2 } }))).toEqual([
+      REGISTRY.vs_otras_tiendas.clave,
+    ]);
   });
 
   it('una mediana de 0 no dispara vs_otras_tiendas', () => {

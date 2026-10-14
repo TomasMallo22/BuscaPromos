@@ -42,11 +42,12 @@ import {
   detectarProducto,
   evaluarGuarda,
   faltantes,
+  otrasTiendasComparables,
   planificarHallazgos,
   presentacionComparable,
+  type ResultadoProducto,
   subPasilloDe,
   tocaRecorrer,
-  type ResultadoProducto,
 } from './planificar.js';
 
 export interface Entorno {
@@ -229,7 +230,7 @@ export async function recorrerTienda(e: Entorno, tienda: TiendaActiva): Promise<
         enStock,
         historial: filas,
         pasillo,
-        otrasTiendas: canonicoId ? (otras.get(canonicoId) ?? []) : [],
+        otrasTiendas: otrasTiendasComparables(visto, canonicoId ? (otras.get(canonicoId) ?? []) : []),
         ahora: ts,
       });
       resultados.push({ productoId: id, precio, enStock, estadoOferta, disparos });

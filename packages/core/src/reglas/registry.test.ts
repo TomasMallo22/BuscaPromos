@@ -8,7 +8,7 @@ import { describe, expect, it } from 'vitest';
 import { CLAVES_REGLA, PARAMETROS, REGISTRY } from './registry.js';
 
 /** Los parametros que NO estan en el original. */
-const AGREGADOS = new Set(['minTiendasMediana', 'pasilloRatioMinimo']);
+const AGREGADOS = new Set(['minTiendasMediana', 'pasilloRatioMinimo', 'otrasTiendasRatioMinimo']);
 
 describe('REGISTRY', () => {
   it('tiene exactamente las 7 claves del enum regla_clave', () => {
@@ -84,5 +84,6 @@ describe('PARAMETROS', () => {
   it('los agregados, con su razon en el registry', () => {
     expect(PARAMETROS.minTiendasMediana).toBe(2);
     expect(PARAMETROS.pasilloRatioMinimo).toBe(0.1);
+    expect(PARAMETROS.otrasTiendasRatioMinimo).toBe(0.25);
   });
 });

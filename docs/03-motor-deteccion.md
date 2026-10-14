@@ -131,6 +131,15 @@ para productos nuevos, que es justo cuando las demas reglas no pueden opinar.
 | `vs_otras_tiendas` | precio <= X x mediana en otras tiendas | 0.5 | otras tiendas |
 | `nuevo_vs_pasillo` | sin historial: precio/kg <= X x percentil 10 del sub-pasillo | 0.2 | la gondola |
 
+### Otras tiendas: lo que no se compara (2026-10-14, no esta en el original)
+
+- **Mas de 75% abajo de la mediana** (`otrasTiendasRatioMinimo`, 0.25): no dispara. Rappi le da
+  el mismo `master_product_id` y la misma presentacion ("1 x 473 mL") a la lata suelta de Dia y
+  al pack de 6 de Coto, Jumbo y Vea.
+- **Lo que se vende por peso** (`sale_type` distinto de `U`): no se compara, como en la gondola.
+- Limite conocido: un precio de otra tienda que se vende por peso puede entrar a la mediana (el
+  dato no se guarda); el piso cubre los casos extremos.
+
 ## 4. Producto nuevo vs. su gondola — `nuevo_vs_pasillo`
 
 Para productos sin historial propio: comparar su precio por kilo o litro contra los mas baratos
