@@ -197,6 +197,15 @@ describe('evaluarReglas — nuevo_vs_pasillo', () => {
     expect(reglas(entrada({ producto: producto(300, 0), habitual: 400, pasillo }))).toEqual([]);
   });
 
+  it('mas de 90% abajo de su gondola no es una oferta: es una presentacion mal cargada', () => {
+    // "Bocadito 1 X 840 g" a $1.067: el precio es de un bombon, la presentacion de la caja.
+    expect(reglas(entrada({ producto: producto(199, 0), pasillo }))).toEqual([]);
+  });
+
+  it('justo en el piso creible, dispara', () => {
+    expect(reglas(entrada({ producto: producto(200, 0), pasillo }))).toEqual([REGISTRY.nuevo_vs_pasillo.clave]);
+  });
+
   it('sin referencia de pasillo no corre', () => {
     expect(reglas(entrada({ producto: producto(300, 0) }))).toEqual([]);
   });

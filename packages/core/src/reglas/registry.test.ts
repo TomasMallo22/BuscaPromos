@@ -7,6 +7,9 @@
 import { describe, expect, it } from 'vitest';
 import { CLAVES_REGLA, PARAMETROS, REGISTRY } from './registry.js';
 
+/** Los parametros que NO estan en el original. */
+const AGREGADOS = new Set(['minTiendasMediana', 'pasilloRatioMinimo']);
+
 describe('REGISTRY', () => {
   it('tiene exactamente las 7 claves del enum regla_clave', () => {
     expect([...CLAVES_REGLA].sort()).toEqual(
@@ -61,7 +64,7 @@ describe('REGISTRY', () => {
 
 describe('PARAMETROS', () => {
   it('son los del original', () => {
-    const delOriginal = Object.fromEntries(Object.entries(PARAMETROS).filter(([k]) => k !== 'minTiendasMediana'));
+    const delOriginal = Object.fromEntries(Object.entries(PARAMETROS).filter(([k]) => !AGREGADOS.has(k)));
     expect(delOriginal).toEqual({
       historialDias: 14,
       realertarSiBaja: 0.05,
@@ -73,7 +76,8 @@ describe('PARAMETROS', () => {
     });
   });
 
-  it('el unico agregado, con su razon en el registry: minTiendasMediana', () => {
+  it('los agregados, con su razon en el registry', () => {
     expect(PARAMETROS.minTiendasMediana).toBe(2);
+    expect(PARAMETROS.pasilloRatioMinimo).toBe(0.1);
   });
 });

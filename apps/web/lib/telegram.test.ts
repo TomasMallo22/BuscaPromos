@@ -1,5 +1,25 @@
 import { describe, expect, it } from 'vitest';
-import { secretoValido, tokenDeStart } from './telegram';
+import { secretoValido, tokenDeStart, usuarioBot } from './telegram';
+
+describe('usuarioBot — lo que se carga en Vercel', () => {
+  it.each([
+    ['buscapromos_bot', 'buscapromos_bot'],
+    ['@buscapromos_bot', 'buscapromos_bot'],
+    ['  BuscaPromosBot  ', 'BuscaPromosBot'],
+    ['https://t.me/buscapromos_bot', 'buscapromos_bot'],
+    ['t.me/buscapromos_bot', 'buscapromos_bot'],
+  ])('%j -> %s', (valor, esperado) => {
+    expect(usuarioBot(valor)).toBe(esperado);
+  });
+
+  // Con cualquiera de estos, t.me manda a telegram.org en vez de abrir el bot.
+  it.each([undefined, '', 'Busca Promos', 'buscapromos', 'abot', '1buscapromos_bot', 'busca-promos_bot'])(
+    '%j no es un usuario de bot',
+    (valor) => {
+      expect(usuarioBot(valor)).toBeNull();
+    },
+  );
+});
 
 describe('secretoValido — E11', () => {
   it('igual: valido', () => {

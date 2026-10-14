@@ -139,6 +139,10 @@ de su sub-pasillo.
 **Parseo de la presentacion.** Regex anclado sobre `"1 X 473 mL"` → `("ml", 473)`,
 `"3 X 324 g"` → `("g", 972)`. Unidades: `g`/`gr` x1, `kg` x1000, `ml`/`cc` x1, `l`/`lt` x1000.
 
+**Rappi escribe mililitros y gramos como "L" y "Kg"** ("1 X 1125 L" es un vino de 1,125 L,
+"65 Kg" un snack de 65 g). Desde 50 litros o kilos **por unidad** se leen como mililitros o
+gramos: ningun producto de super viene asi (un bidon son 20 L). No esta en el original.
+
 **Solo peso y volumen.** Las "Und" se descartan **a proposito**: un paquete de 150 servilletas
 y una pizza son los dos "1 Und" y no son comparables. Si la presentacion no matchea el regex,
 la regla no corre para ese producto. **No lo "arregles" agregando unidades.**
@@ -155,6 +159,10 @@ otros[Math.floor(otros.length / 10)] * cantidad
 
 O sea: *lo que costaria este producto si tuviera el precio por unidad de los mas baratos de su
 gondola.*
+
+**Piso creible (`pasilloRatioMinimo`, 0.1, no esta en el original).** Mas de 90% abajo de esa
+referencia no es una oferta: es una presentacion mal cargada (el precio de un bombon con la
+presentacion de la caja). La regla no dispara.
 
 **`Math.floor(n / 10)` es division entera, y con exactamente 8 comparables da indice 0**, que
 es el minimo, no "el percentil 10". Es intencional y esta asi en el original. **No lo

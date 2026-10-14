@@ -15,6 +15,16 @@ export function secretoValido(recibido: string | null, esperado: string | undefi
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
+/**
+ * El usuario del bot tal como lo pide `t.me/<usuario>`, o `null` si lo cargado no lo es. Acepta
+ * "@usuario" y el link entero; con cualquier otra cosa t.me manda a telegram.org en vez de
+ * abrir el bot. Telegram: 5 a 32 caracteres, letras, numeros y "_", y termina en "bot".
+ */
+export function usuarioBot(valor: string | undefined): string | null {
+  const limpio = (valor ?? '').trim().replace(/^(https?:\/\/)?t\.me\//i, '').replace(/^@/, '');
+  return /^[a-z][a-z0-9_]{1,29}bot$/i.test(limpio) ? limpio : null;
+}
+
 /** El token del deep link `t.me/<bot>?start=<token>`: Telegram lo manda como "/start <token>". */
 export function tokenDeStart(texto: string | undefined): string | null {
   return /^\/start ([0-9a-f]{32})$/.exec(texto?.trim() ?? '')?.[1] ?? null;
