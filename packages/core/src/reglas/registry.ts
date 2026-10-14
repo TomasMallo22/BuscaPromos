@@ -121,7 +121,10 @@ export const REGISTRY: { readonly [K in ReglaClave]: DefinicionRegla<K> } = {
     orden: 5,
     extrema: false,
     evaluar: ({ producto: { precio }, mediana }, u) =>
-      u.vs_otras_tiendas !== null && mediana?.precio && precio / mediana.precio <= u.vs_otras_tiendas
+      u.vs_otras_tiendas !== null &&
+      mediana?.precio &&
+      precio / mediana.precio <= u.vs_otras_tiendas &&
+      precio / mediana.precio >= PARAMETROS.otrasTiendasRatioMinimo
         ? {
             regla: 'vs_otras_tiendas',
             precioReferencia: mediana.precio,
@@ -204,6 +207,12 @@ export const PARAMETROS = {
    * historial o con tachado; esta corre solo sin historial, y compara contra una presentacion.
    */
   pasilloRatioMinimo: 0.1,
+  /**
+   * Piso de `vs_otras_tiendas`: mas de 75% abajo de la mediana del MISMO producto en otras
+   * tiendas no es una oferta, es otro pack. Rappi le da el mismo `master_product_id` (y la
+   * misma presentacion) a la lata suelta de Dia y al pack de 6 de Coto. NO esta en el original.
+   */
+  otrasTiendasRatioMinimo: 0.25,
   /**
    * Otras tiendas con el mismo producto para que `vs_otras_tiendas` opine. NO esta en el
    * original, donde la regla nunca tuvo mas de una tienda real: con una sola referencia, un

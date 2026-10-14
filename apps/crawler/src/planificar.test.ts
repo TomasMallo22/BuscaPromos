@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { REGISTRY } from '@buscapromos/core';
-import { decidirCobertura, detectarProducto, evaluarGuarda, faltantes, planificarHallazgos, subPasilloDe, tocaRecorrer } from './planificar.js';
+import {
+  decidirCobertura,
+  detectarProducto,
+  evaluarGuarda,
+  faltantes,
+  otrasTiendasComparables,
+  planificarHallazgos,
+  subPasilloDe,
+  tocaRecorrer,
+} from './planificar.js';
 
 const DIA = 86400;
 const AHORA = 1_000 * DIA;
@@ -94,6 +103,12 @@ describe('vs_otras_tiendas (spec 002)', () => {
   it('E5: con una sola tienda mas no opina', () => {
     const { disparos } = detectarProducto({ ...base, precio: 1000, historial: [], otrasTiendas: [2500] });
     expect(disparos.map((x) => x.regla)).not.toContain(r.vs_otras_tiendas.clave);
+  });
+
+  it('lo que se vende por peso no se compara con otras tiendas: su precio no es el del paquete', () => {
+    expect(otrasTiendasComparables({ seVendePorPeso: true }, [2500, 2500])).toEqual([]);
+    expect(otrasTiendasComparables({ seVendePorPeso: false }, [2500, 2500])).toEqual([2500, 2500]);
+    expect(otrasTiendasComparables(undefined, [2500, 2500])).toEqual([]);
   });
 
   it('mas caro que la mitad de la mediana: nada', () => {

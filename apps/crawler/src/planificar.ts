@@ -167,6 +167,16 @@ export function planificarHallazgos(
 }
 
 /**
+ * Los precios del mismo producto en otras tiendas, si se puede comparar. Lo que se vende por
+ * peso no: su precio es por kilo o por paso, no el del paquete (la misma razon que en la
+ * gondola). Sin el producto visto en esta corrida, tampoco.
+ */
+export const otrasTiendasComparables = (
+  p: { seVendePorPeso: boolean } | undefined,
+  precios: readonly number[],
+): readonly number[] => (p && !p.seVendePorPeso ? precios : []);
+
+/**
  * La presentacion que entra al indice de gondola. Lo que se vende por peso queda afuera: su
  * precio no es el del paquete que dice la presentacion (spec 002).
  */
