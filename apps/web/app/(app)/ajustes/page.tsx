@@ -49,7 +49,7 @@ export default async function PaginaAjustes({ searchParams }: { searchParams: Pr
               </p>
               {telegram === 'sin-bot' && (
                 <p role="alert" className="text-sm text-error">
-                  El bot todavía no está configurado en la web (falta NEXT_PUBLIC_TELEGRAM_BOT).
+                  El bot todavía no está configurado en la web (falta NEXT_PUBLICO_TELEGRAM_BOT).
                 </p>
               )}
               <form action={conectarTelegram}>

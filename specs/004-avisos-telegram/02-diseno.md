@@ -57,4 +57,4 @@ productos (uno por linea). Si conecto y no eligio nada, lo dice.
 |---|---|
 | GitHub secrets | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET` |
 | GitHub variables | `URL_WEB` |
-| Vercel | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET`, `NEXT_PUBLIC_TELEGRAM_BOT` (el usuario del bot, no es secreto) |
+| Vercel | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET`, `NEXT_PUBLICO_TELEGRAM_BOT` (el usuario del bot, no es secreto) |

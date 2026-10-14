@@ -17,7 +17,7 @@ export async function cerrarSesion(): Promise<void> {
  * `/start <token>`. En el celular, el link abre la app de Telegram.
  */
 export async function conectarTelegram(): Promise<void> {
-  const bot = process.env.NEXT_PUBLIC_TELEGRAM_BOT;
+  const bot = process.env.NEXT_PUBLICO_TELEGRAM_BOT;
   if (!bot) redirect('/ajustes?telegram=sin-bot');
   const supabase = await crearClienteServidor();
   const token = await crearVinculoTelegram(supabase);
