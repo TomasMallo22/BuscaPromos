@@ -3,7 +3,9 @@ import {
   hallazgosVigentes,
   misDirecciones,
   misTiendas,
+  obtenerPerfil,
   type DireccionDelUsuario,
+  type FiltroFeed,
 } from '@buscapromos/db';
 import { CATEGORIAS, PARAMETROS } from '@buscapromos/core';
 import Link from 'next/link';
@@ -19,15 +21,21 @@ import { crearClienteServidor } from '@/lib/supabase/servidor';
  * funciona justo cuando funciona como se diseño. Todo lo que muestra viene calculado de la
  * base (regla de oro 11): la pagina ordena y formatea, no detecta.
  */
-export default async function PaginaFeed({ searchParams }: { searchParams: Promise<{ cat?: string; q?: string }> }) {
-  const { cat, q } = await searchParams;
+export default async function PaginaFeed({ searchParams }: { searchParams: Promise<{ cat?: string; q?: string; todo?: string }> }) {
+  const { cat, q, todo } = await searchParams;
   // Solo categorias que existen: lo que viene en la URL lo escribio cualquiera.
   const categoria = CATEGORIAS.some((c) => c.clave === cat) ? cat! : null;
   const texto = q?.trim().slice(0, 60) || null;
-  const filtro = { categoria, texto };
   const filtrando = categoria !== null || texto !== null;
   const supabase = await crearClienteServidor();
-  const [direcciones, tiendas] = await Promise.all([misDirecciones(supabase), misTiendas(supabase)]);
+  const [direcciones, tiendas, perfil] = await Promise.all([misDirecciones(supabase), misTiendas(supabase), obtenerPerfil(supabase)]);
+
+  // Spec 005: un filtro explicito manda; si no, "Mis intereses", salvo que pida ver todo o no
+  // haya elegido nada.
+  const intereses = { categorias: perfil?.avisos_categorias ?? [], terminos: perfil?.avisos_terminos ?? [] };
+  const tieneIntereses = intereses.categorias.length + intereses.terminos.length > 0;
+  const soloIntereses = !filtrando && tieneIntereses && todo !== '1';
+  const filtro: FiltroFeed = filtrando ? { categoria, texto } : soloIntereses ? { intereses } : {};
 
   if (direcciones.length === 0) {
     return (
@@ -107,6 +115,10 @@ export default async function PaginaFeed({ searchParams }: { searchParams: Promi
         </div>
       )}
 
+      {recorridas.length > 0 && !filtrando && (
+        <ModoFeed soloIntereses={soloIntereses} tieneIntereses={tieneIntereses} />
+      )}
+
       {recorridas.length > 0 && <FiltrosFeed categoria={categoria} texto={texto} />}
 
       {recorridas.length > 0 && (
@@ -121,7 +133,9 @@ export default async function PaginaFeed({ searchParams }: { searchParams: Promi
             <p className="rounded-xl border border-borde bg-superficie p-4 text-texto-suave">
               {filtrando
                 ? 'Nada detectado con este filtro por ahora.'
-                : 'Nada raro por ahora. Es lo normal: avisamos cuando algo está muy por debajo de su precio de siempre.'}
+                : soloIntereses
+                  ? 'Nada de lo que te interesa por ahora, ni nada extremo de lo demás.'
+                  : 'Nada raro por ahora. Es lo normal: avisamos cuando algo está muy por debajo de su precio de siempre.'}
             </p>
           )}
         </section>
@@ -146,6 +160,49 @@ export default async function PaginaFeed({ searchParams }: { searchParams: Promi
             <TarjetaDescuento key={d.productoId} d={d} />
           ))}
         </section>
+      )}
+    </div>
+  );
+}
+
+/**
+ * "Mis intereses" o "Ver todo" (spec 005). Sin intereses elegidos se ve todo, y se invita a
+ * elegirlos: el feed de los supermercados sin filtrar son cientos de ofertas.
+ */
+function ModoFeed({ soloIntereses, tieneIntereses }: { soloIntereses: boolean; tieneIntereses: boolean }) {
+  if (!tieneIntereses) {
+    return (
+      <p className="rounded-xl border border-borde bg-superficie p-4 text-sm text-texto-suave">
+        Estás viendo todo.{' '}
+        <Link href="/ajustes" className="font-medium text-acento underline underline-offset-2">
+          Elegí tus intereses
+        </Link>{' '}
+        para ver solo lo que comprás, y de lo demás, lo extremo.
+      </p>
+    );
+  }
+  const opcion = (activo: boolean) =>
+    `flex h-10 flex-1 items-center justify-center rounded-lg text-sm font-medium ${
+      activo ? 'bg-acento text-acento-texto' : 'text-texto'
+    }`;
+  return (
+    <div className="space-y-2">
+      <nav aria-label="Qué mirar" className="flex gap-1 rounded-xl border border-borde bg-superficie p-1">
+        <Link href="/feed" className={opcion(soloIntereses)} aria-current={soloIntereses ? 'page' : undefined}>
+          Mis intereses
+        </Link>
+        <Link href="/feed?todo=1" className={opcion(!soloIntereses)} aria-current={!soloIntereses ? 'page' : undefined}>
+          Ver todo
+        </Link>
+      </nav>
+      {soloIntereses && (
+        <p className="text-sm text-texto-suave">
+          Lo que elegiste en{' '}
+          <Link href="/ajustes" className="font-medium text-acento underline underline-offset-2">
+            Ajustes
+          </Link>
+          , y de lo demás solo lo extremo: a menos de la mitad de su precio de siempre, o un error de precio.
+        </p>
       )}
     </div>
   );

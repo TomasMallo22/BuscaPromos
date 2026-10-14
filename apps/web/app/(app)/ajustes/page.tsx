@@ -5,7 +5,7 @@ import { cerrarSesion, conectarTelegram, desvincularTelegram } from './acciones'
 import { FormularioAvisos } from './formulario-avisos';
 
 /**
- * Ajustes: los avisos por Telegram (spec 004) y la cuenta. El horario silencioso y el tope por
+ * Ajustes: mis intereses (spec 005: el feed y Telegram), los avisos por Telegram (spec 004) y la cuenta. El horario silencioso y el tope por
  * hora se muestran pero no se editan todavia (quedaron afuera de la 004).
  */
 export default async function PaginaAjustes({ searchParams }: { searchParams: Promise<{ telegram?: string }> }) {
@@ -25,6 +25,17 @@ export default async function PaginaAjustes({ searchParams }: { searchParams: Pr
       <h1 className="text-lg font-semibold">Ajustes</h1>
 
       <section className="space-y-4">
+        <div>
+          <h2 className="font-semibold">Mis intereses</h2>
+          <p className="mt-1 text-sm text-texto-suave">
+            Lo que ves en el feed y lo que te llega por Telegram. De lo demás, solo lo extremo: un producto a menos de la
+            mitad de su precio de siempre, una oferta confirmada de 50% o más, o un error de precio.
+          </p>
+        </div>
+        <FormularioAvisos categorias={categorias} terminos={terminos} />
+      </section>
+
+      <section className="space-y-4">
         <h2 className="font-semibold">Avisos por Telegram</h2>
 
         <div className="rounded-xl border border-borde bg-superficie p-4">
@@ -33,7 +44,7 @@ export default async function PaginaAjustes({ searchParams }: { searchParams: Pr
               <p>
                 <span className="font-medium text-oferta-real">✓ Conectado</span>
                 <span className="block text-sm text-texto-suave">
-                  {sinPreferencias ? 'Elegí abajo qué te interesa: sin eso no te llega nada.' : 'Te llegan avisos de lo que elegiste abajo.'}
+                  {sinPreferencias ? 'Elegí arriba tus intereses: sin eso no te llega nada.' : 'Te llegan avisos de tus intereses.'}
                 </span>
               </p>
               <form action={desvincularTelegram}>
@@ -61,8 +72,6 @@ export default async function PaginaAjustes({ searchParams }: { searchParams: Pr
             </div>
           )}
         </div>
-
-        <FormularioAvisos categorias={categorias} terminos={terminos} />
 
         {perfil && (
           <p className="text-sm text-texto-suave">

@@ -44,6 +44,11 @@ describe('REGISTRY', () => {
     expect(REGISTRY.promo_usuario_nuevo.umbral).toBeNull();
   });
 
+  it('extremas: solo las que tienen evidencia mas alla del tachado, la gondola u otras tiendas (spec 005)', () => {
+    const extremas = CLAVES_REGLA.filter((c) => REGISTRY[c].extrema).sort();
+    expect(extremas).toEqual(['caida_vs_historial', 'gran_descuento', 'precio_absurdo']);
+  });
+
   it('el orden de prioridad es unico por regla', () => {
     const ordenes = CLAVES_REGLA.map((c) => REGISTRY[c].orden);
     expect(new Set(ordenes).size).toBe(ordenes.length);

@@ -3,7 +3,7 @@
  * usuario: RLS decide que tiendas, hallazgos y precios ve (regla de oro 13). Ninguna funcion
  * filtra por usuario a mano.
  */
-import type { ReglaClave } from '@buscapromos/core';
+import { interesa, palabrasDeTermino, seMuestra, type Intereses, type ReglaClave } from '@buscapromos/core';
 import type { ClienteUsuario } from './usuarios.js';
 
 export interface DireccionDelUsuario {
@@ -70,13 +70,41 @@ export interface HallazgoEnFeed extends ProductoEnFeed {
   readonly ratio: number | null;
   readonly estadoOferta: 'real' | 'inflado' | 'sin_historial' | null;
   readonly detectadoAt: string;
+  readonly categoria: string | null;
 }
 
-/** Lo que el usuario eligio mirar (spec 003): una categoria comun y/o un texto en el nombre. */
+/**
+ * Lo que el usuario eligio mirar: una categoria comun y/o un texto en el nombre (spec 003), o
+ * sus intereses (spec 005): lo que interesa y, de los hallazgos, tambien lo extremo.
+ */
 export interface FiltroFeed {
   readonly categoria?: string | null;
   readonly texto?: string | null;
+  readonly intereses?: Intereses | null;
 }
+
+/**
+ * Los intereses como `or` de PostgREST sobre `productos`: la categoria elegida, o todas las
+ * palabras de algun termino. Es un prefiltro: lo que trae se refina con `interesa` del core.
+ * Las vocales van como `_` (cualquier letra) para que "azucar" encuentre "Azúcar"; las palabras
+ * de 1 o 2 letras, tal cual. Las palabras ya vienen normalizadas: solo letras y numeros, nada que
+ * rompa la sintaxis del `or`. `null` si no hay nada que filtrar.
+ */
+export function filtroIntereses(i: Intereses): string | null {
+  const partes: string[] = [];
+  if (i.categorias.length > 0) partes.push(`categoria.in.(${i.categorias.join(',')})`);
+  for (const termino of i.terminos) {
+    const ilikes = palabrasDeTermino(termino).map(
+      (p) => `nombre.ilike.*${p.length <= 2 ? p : p.replace(/[aeiou]/g, '_')}*`,
+    );
+    if (ilikes.length === 1) partes.push(ilikes[0]!);
+    else if (ilikes.length > 1) partes.push(`and(${ilikes.join(',')})`);
+  }
+  return partes.length > 0 ? partes.join(',') : null;
+}
+
+/** Cuantos de mas se leen cuando despues se refina en TS: el prefiltro trae algo de ruido. */
+const MARGEN_REFINADO = 4;
 
 /** Un texto del usuario dentro de un `ilike`: `%` y `_` son comodines, se escapan. */
 export const patronIlike = (texto: string) => `%${texto.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
@@ -91,9 +119,14 @@ export async function hallazgosVigentes(c: ClienteUsuario, filtro: FiltroFeed = 
     .is('cerrado_at', null);
   if (filtro.categoria) q = q.eq('productos.categoria', filtro.categoria);
   if (filtro.texto) q = q.ilike('productos.nombre', patronIlike(filtro.texto));
-  const { data, error } = await q.order('ratio', { ascending: true, nullsFirst: false }).limit(limite);
+  // Con intereses no hay prefiltro en la base: lo extremo pasa sea lo que sea. Abiertos hay
+  // cientos, no miles.
+  const { intereses } = filtro;
+  const { data, error } = await q
+    .order('ratio', { ascending: true, nullsFirst: false })
+    .limit(intereses ? limite * MARGEN_REFINADO : limite);
   if (error) throw new Error(`No se pudieron leer los hallazgos: ${error.message}`);
-  return data.flatMap((h) =>
+  const todos: HallazgoEnFeed[] = data.flatMap((h) =>
     h.productos && h.tiendas
       ? [
           {
@@ -105,6 +138,7 @@ export async function hallazgosVigentes(c: ClienteUsuario, filtro: FiltroFeed = 
             ratio: h.ratio,
             estadoOferta: h.estado_oferta,
             detectadoAt: h.detectado_at,
+            categoria: h.productos.categoria,
             nombre: h.productos.nombre,
             presentacion: h.productos.presentacion,
             imagenUrl: h.productos.imagen_url,
@@ -113,6 +147,7 @@ export async function hallazgosVigentes(c: ClienteUsuario, filtro: FiltroFeed = 
         ]
       : [],
   );
+  return intereses ? todos.filter((h) => seMuestra(h, intereses)).slice(0, limite) : todos;
 }
 
 export interface DescuentoAnunciado extends ProductoEnFeed {
@@ -120,6 +155,7 @@ export interface DescuentoAnunciado extends ProductoEnFeed {
   readonly precio: number;
   readonly precioLista: number;
   readonly ratioLista: number;
+  readonly categoria: string | null;
 }
 
 /**
@@ -137,9 +173,14 @@ export async function descuentosAnunciados(c: ClienteUsuario, filtro: FiltroFeed
     .not('ratio_lista', 'is', null);
   if (filtro.categoria) q = q.eq('productos.categoria', filtro.categoria);
   if (filtro.texto) q = q.ilike('productos.nombre', patronIlike(filtro.texto));
-  const { data, error } = await q.order('ratio_lista', { ascending: true }).limit(limite);
+  // Los descuentos anunciados nunca son extremos (regla de oro 1): solo lo que interesa.
+  const { intereses } = filtro;
+  const prefiltro = intereses ? filtroIntereses(intereses) : null;
+  if (intereses && !prefiltro) return [];
+  if (prefiltro) q = q.or(prefiltro, { referencedTable: 'productos' });
+  const { data, error } = await q.order('ratio_lista', { ascending: true }).limit(intereses ? limite * MARGEN_REFINADO : limite);
   if (error) throw new Error(`No se pudieron leer los descuentos: ${error.message}`);
-  return data.flatMap((p) =>
+  const todos: DescuentoAnunciado[] = data.flatMap((p) =>
     p.productos && p.tiendas && p.precio_lista !== null && p.ratio_lista !== null
       ? [
           {
@@ -147,6 +188,7 @@ export async function descuentosAnunciados(c: ClienteUsuario, filtro: FiltroFeed
             precio: p.precio,
             precioLista: p.precio_lista,
             ratioLista: p.ratio_lista,
+            categoria: p.productos.categoria,
             nombre: p.productos.nombre,
             presentacion: p.productos.presentacion,
             imagenUrl: p.productos.imagen_url,
@@ -155,6 +197,7 @@ export async function descuentosAnunciados(c: ClienteUsuario, filtro: FiltroFeed
         ]
       : [],
   );
+  return intereses ? todos.filter((d) => interesa(d, intereses)).slice(0, limite) : todos;
 }
 
 export type ResultadoNuevaDireccion = { ok: true } | { ok: false; motivo: 'etiqueta_repetida' | 'otro' };

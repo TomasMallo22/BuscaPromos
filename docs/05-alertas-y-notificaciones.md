@@ -7,6 +7,11 @@ nada elegido no le llega nada. Le llegan los hallazgos de sus categorias o produ
 para los productos escritos, los descuentos que anuncia Rappi de 30% o mas, marcados "sin
 verificar" (tabla `avisos_descuento`). Reemplaza el filtro de "lista + umbral" de la 001.
 
+**Spec 005:** esas categorias y productos son los **intereses** del usuario, y valen tambien
+para el feed. De lo que no le interesa le llegan solo los hallazgos de reglas `extrema` del
+registry (`precio_absurdo`, `caida_vs_historial`, `gran_descuento`). Sin intereses, Telegram
+sigue sin mandar nada (opt-in) y el feed muestra todo.
+
 ## Los dos pasos
 
 **Deteccion** (en la corrida) escribe `hallazgos` y `alerta_estado`. No sabe que existen
