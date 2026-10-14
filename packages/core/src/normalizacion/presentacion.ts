@@ -25,6 +25,15 @@ const UNIDADES: ReadonlyMap<string, readonly [Dimension, number]> = new Map([
   ['lt', ['ml', 1000]],
 ]);
 
+/**
+ * Rappi escribe mililitros y gramos con la unidad "L" o "Kg": "1 X 1125 L" es un vino de
+ * 1,125 L, "65 Kg" un snack de 65 g. Ningun producto de super trae 50 litros o 50 kilos por
+ * unidad (un bidon son 20 L, una bolsa de alimento 21 kg), asi que desde aca se leen como
+ * mililitros o gramos. Leidos al pie de la letra, el producto parece 1000 veces mas grande y
+ * `nuevo_vs_pasillo` lo marca "100% menos".
+ */
+const MAX_LITROS_O_KILOS = 50;
+
 /** `"3 X 324 g"`: multiplicador opcional, cantidad con decimal `.` o `,`, unidad. Anclado. */
 const PRESENTACION = /^\s*(?:(\d+)\s*[xX]\s*)?(\d+(?:[.,]\d+)?)\s*([a-zA-Z]+)\s*$/;
 
@@ -35,6 +44,8 @@ export function parsearPresentacion(texto: string | null | undefined): Cantidad 
   const unidad = UNIDADES.get(m[3]!.toLowerCase());
   if (!unidad) return null;
   const [dimension, factor] = unidad;
-  const cantidad = Number(m[1] ?? 1) * Number(m[2]!.replace(',', '.')) * factor;
+  const porUnidad = Number(m[2]!.replace(',', '.'));
+  const escala = factor === 1000 && porUnidad >= MAX_LITROS_O_KILOS ? 1 : factor;
+  const cantidad = Number(m[1] ?? 1) * porUnidad * escala;
   return cantidad > 0 ? { dimension, cantidad } : null;
 }

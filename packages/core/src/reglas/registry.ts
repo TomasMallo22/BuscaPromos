@@ -127,7 +127,11 @@ export const REGISTRY: { readonly [K in ReglaClave]: DefinicionRegla<K> } = {
     // La red para productos nuevos: corre SOLO sin historial propio, que es justo cuando las
     // demas reglas no pueden opinar.
     evaluar: ({ producto: { precio }, habitual, pasillo }, u) =>
-      habitual === null && pasillo && u.nuevo_vs_pasillo && precio / pasillo.referencia <= u.nuevo_vs_pasillo
+      habitual === null &&
+      pasillo &&
+      u.nuevo_vs_pasillo &&
+      precio / pasillo.referencia <= u.nuevo_vs_pasillo &&
+      precio / pasillo.referencia >= PARAMETROS.pasilloRatioMinimo
         ? {
             regla: 'nuevo_vs_pasillo',
             precioReferencia: pasillo.referencia,
@@ -179,6 +183,13 @@ export const PARAMETROS = {
   mismoPrecio: 0.02,
   /** Comparables del mismo sub-pasillo y dimension para `nuevo_vs_pasillo`. */
   minComparables: 8,
+  /**
+   * Piso de `nuevo_vs_pasillo`: mas de 90% abajo de lo mas barato de su gondola, por kilo o
+   * litro, no es una oferta sino una presentacion mal cargada ("Bocadito 1 X 840 g" a precio de
+   * un bombon). NO esta en el original. Los errores de precio de verdad los ven las reglas con
+   * historial o con tachado; esta corre solo sin historial, y compara contra una presentacion.
+   */
+  pasilloRatioMinimo: 0.1,
   /**
    * Otras tiendas con el mismo producto para que `vs_otras_tiendas` opine. NO esta en el
    * original, donde la regla nunca tuvo mas de una tienda real: con una sola referencia, un
