@@ -25,7 +25,8 @@
     "reglas:verificar": "tsx scripts/verificar-reglas.ts",
     "fixtures:verificar": "tsx scripts/verificar-fixtures.ts",
     "corrida": "npm run corrida -w @buscapromos/crawler",
-    "corrida:seca": "npm run corrida:seca -w @buscapromos/crawler --"
+    "corrida:seca": "npm run corrida:seca -w @buscapromos/crawler --",
+    "notificar": "npm run notificar -w @buscapromos/crawler"
   },
   "devDependencies": {
     "@types/node": "^22.7.5",

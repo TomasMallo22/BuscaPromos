@@ -1,0 +1,36 @@
+# Registra el webhook del bot en Telegram (spec 004). Se corre a mano una vez, y de nuevo si
+# cambia la URL de la web o el secreto. Asi el token del bot no pasa por un navegador.
+#
+# Necesita: secrets TELEGRAM_BOT_TOKEN y TELEGRAM_WEBHOOK_SECRET, y la variable URL_WEB
+# (https://<tu-web>.vercel.app, sin barra final).
+name: telegram-webhook
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  registrar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: setWebhook
+        env:
+          TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          SECRETO: ${{ secrets.TELEGRAM_WEBHOOK_SECRET }}
+          URL_WEB: ${{ vars.URL_WEB }}
+        run: |
+          if [ -z "$TOKEN" ] || [ -z "$SECRETO" ] || [ -z "$URL_WEB" ]; then
+            echo "::error::Faltan TELEGRAM_BOT_TOKEN, TELEGRAM_WEBHOOK_SECRET o la variable URL_WEB"
+            exit 1
+          fi
+          # Solo se imprime la respuesta de Telegram ({"ok":true,...}); nunca el token.
+          curl -sS --fail-with-body "https://api.telegram.org/bot${TOKEN}/setWebhook" \
+            --data-urlencode "url=${URL_WEB%/}/api/telegram/webhook" \
+            --data-urlencode "secret_token=${SECRETO}" \
+            --data-urlencode 'allowed_updates=["message"]' \
+            --data-urlencode "drop_pending_updates=true"
+          echo
+          curl -sS "https://api.telegram.org/bot${TOKEN}/getWebhookInfo" | sed -E 's/"url":"[^"]*"/"url":"(oculta)"/'

@@ -30,3 +30,4 @@ export {
 export { debeCerrar, decidirAlerta, type AlertaVigente, type DecisionAlerta } from './deteccion/anti-spam.js';
 export { medianaOtrasTiendas } from './deteccion/mediana.js';
 export { CATEGORIAS, categoriaComun, type CategoriaClave } from './normalizacion/categoria.js';
+export { pesos, porcentajeMenos } from './formato.js';

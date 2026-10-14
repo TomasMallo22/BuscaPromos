@@ -20,7 +20,15 @@ export type {
 export { Constants } from './tipos.js';
 
 export type { ClienteUsuario } from './usuarios.js';
-export { contarDireccionesActivas, obtenerPerfil } from './usuarios.js';
+export {
+  contarDireccionesActivas,
+  crearVinculoTelegram,
+  desconectarTelegram,
+  guardarPreferenciasAvisos,
+  obtenerPerfil,
+  telegramConectado,
+  vincularTelegram,
+} from './usuarios.js';
 export {
   actualizarDireccion,
   borrarDireccion,

@@ -10,6 +10,7 @@
   },
   "scripts": {
     "corrida": "tsx src/main.ts",
-    "corrida:seca": "tsx src/seca.ts"
+    "corrida:seca": "tsx src/seca.ts",
+    "notificar": "tsx src/notificar-main.ts"
   }
 }

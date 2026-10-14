@@ -39,11 +39,12 @@ describe('tipoOtp', () => {
 });
 
 describe('esRutaPublica', () => {
-  it.each(['/login', '/auth/confirm'])('%s es publica', (ruta) => {
+  // El webhook lo llama Telegram, sin sesion: se protege con su propio secreto (spec 004).
+  it.each(['/login', '/auth/confirm', '/api/telegram/webhook'])('%s es publica', (ruta) => {
     expect(esRutaPublica(ruta)).toBe(true);
   });
 
-  it.each(['/', '/feed', '/ajustes', '/loginx', '/authx'])('%s pide sesion', (ruta) => {
+  it.each(['/', '/feed', '/ajustes', '/loginx', '/authx', '/api/geocodificar', '/api/telegramx'])('%s pide sesion', (ruta) => {
     expect(esRutaPublica(ruta)).toBe(false);
   });
 });
