@@ -45,7 +45,7 @@ re-consultan cada hora, asi una tienda que no estaba (Turbo de noche) se suma so
 | GitHub → Secrets | `TELEGRAM_WEBHOOK_SECRET` | un texto al azar (letras, numeros, `_` y `-`, hasta 256) |
 | GitHub → Variables | `URL_WEB` | `https://<la-web>.vercel.app`, sin barra final |
 | Vercel | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET` | los mismos |
-| Vercel | `NEXT_PUBLIC_TELEGRAM_BOT` | el usuario del bot, sin @ |
+| Vercel | `NEXT_PUBLICO_TELEGRAM_BOT` | el usuario del bot, sin @ |
 
 Despues de cargarlos y redeployar Vercel: Actions → **telegram-webhook** → Run workflow. Imprime
 `"ok":true` si Telegram acepto el webhook. Los avisos salen en el paso **Avisos** de
