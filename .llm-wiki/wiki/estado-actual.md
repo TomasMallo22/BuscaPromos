@@ -1,18 +1,26 @@
 # Estado actual
 
-_Ultima actualizacion: 2026-10-07_
+_Ultima actualizacion: 2026-10-13_
 
 ## Donde estamos
 
-**Spec 004 (avisos por Telegram) implementada** (2026-10-13), en `claude/spec-004-avisos-telegram`
-junto con la 0018 (endurecer permisos, hallazgos de una revision de seguridad propia). Las
-specs 002 y 003 ya estan en `main`. Las migraciones hasta la 0019 estan aplicadas en la base.
+**Specs 001 a 004 en `main` y andando** (2026-10-13): Turbo, Turbo 24 hs y 9 supermercados,
+pg_cron disparando cada 30 min, bot de Telegram registrado. Migraciones hasta la 0019.
 
-Falta del dueño: el token de GitHub en Vault (`github_token_corrida`: no estaba cargado), y
-crear el bot con sus secrets y variables (ver `docs/07-operacion.md`).
+**Spec 005 (Mis intereses) implementada** en `claude/spec-005-intereses`: el feed y Telegram
+muestran lo que el usuario eligio, y de lo demas solo las reglas `extrema` del registry. Se
+sigue guardando todo el catalogo (decision del dueño).
 
-Lo que sigue: tests de RLS con dos JWT reales, y lo que salga de la revision adversarial de
-las specs 001-003 (corriendo en otra sesion).
+Arreglado el 2026-10-13 (PR 7): Rappi escribe ml y g como "L" y "Kg" ("1 X 1125 L"); el parser
+de presentacion los lee como ml/g desde 50 por unidad, y `nuevo_vs_pasillo` tiene un piso
+creible (`pasilloRatioMinimo`). Quedaron 13 hallazgos absurdos abiertos de antes: cerrarlos a
+mano (el cierre por histeresis no los saca).
+
+Lo que sigue:
+- **Medir el crecimiento de la base el 2026-11-03** (83 MB de 500 el 2026-10-13; tarea
+  programada). Si se acerca al limite, spec de retencion del historial viejo.
+- Revision adversarial del piso de `nuevo_vs_pasillo` y de la spec 005 (tocan reglas).
+- Tests de RLS con dos JWT reales.
 
 ## Hecho
 

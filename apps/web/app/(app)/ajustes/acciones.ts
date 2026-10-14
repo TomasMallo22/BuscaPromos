@@ -50,7 +50,7 @@ export async function guardarAvisos(_previo: EstadoAvisos, datos: FormData): Pro
   return {
     mensaje:
       categorias.length + terminos.length === 0
-        ? 'Guardado. Sin categorías ni productos no te va a llegar ningún aviso.'
+        ? 'Guardado. Sin intereses, el feed te muestra todo y por Telegram no te llega nada.'
         : 'Guardado.',
     error: null,
   };

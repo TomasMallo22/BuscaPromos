@@ -1,12 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { REGISTRY } from '@buscapromos/core';
 import {
-  coincideTermino,
   elegirDescuentos,
   elegirHallazgos,
   elegirParaEnviar,
   enSilencio,
-  terminoQueCoincide,
   type PreferenciasAvisos,
 } from './avisos.js';
 
@@ -20,30 +18,6 @@ const prefs = (p: Partial<PreferenciasAvisos> = {}): PreferenciasAvisos => ({
   silencioHasta: 8,
   maxPorHora: 6,
   ...p,
-});
-
-describe('coincideTermino — E4', () => {
-  it.each([
-    ['Yogur Natural Entero La Serenísima 1 kg', 'yogurt natural'],
-    ['Aceite de Oliva Extra Virgen Cocinero 500 ml', 'aceite de oliva'],
-    ['ACEITE DE OLIVA', 'Aceites de oliva'],
-    ['Café Molido La Virginia', 'cafe'],
-  ])('"%s" coincide con "%s"', (nombre, termino) => {
-    expect(coincideTermino(nombre, termino)).toBe(true);
-  });
-
-  it.each([
-    ['Aceite de Girasol Natura', 'aceite de oliva'],
-    ['Yogur Bebible Frutilla', 'yogurt natural'],
-    ['Cualquier cosa', ''],
-  ])('"%s" NO coincide con "%s"', (nombre, termino) => {
-    expect(coincideTermino(nombre, termino)).toBe(false);
-  });
-
-  it('devuelve cual de los terminos coincidio', () => {
-    expect(terminoQueCoincide('Yogur Natural', ['aceite de oliva', 'yogurt natural'])).toBe('yogurt natural');
-    expect(terminoQueCoincide('Fideos', ['aceite de oliva'])).toBeNull();
-  });
 });
 
 describe('enSilencio — E6', () => {
@@ -73,12 +47,20 @@ const hallazgo = (productoId: string, regla: keyof typeof REGISTRY, ratio: numbe
 });
 
 describe('elegirHallazgos', () => {
-  it('E2: solo los de mis categorias o terminos', () => {
+  it('E2 de la 004: de lo que no elegi, lo que no es extremo no llega', () => {
     const elegidos = elegirHallazgos(
-      [hallazgo('a', 'caida_vs_historial', 0.4), hallazgo('b', 'caida_vs_historial', 0.3, { categoria: 'limpieza', nombre: 'Lavandina' })],
+      [hallazgo('a', 'caida_vs_historial', 0.4), hallazgo('b', 'vs_otras_tiendas', 0.3, { categoria: 'limpieza', nombre: 'Lavandina' })],
       prefs({ categorias: ['lacteos'] }),
     );
     expect(elegidos.map((h) => h.productoId)).toEqual(['a']);
+  });
+
+  it('E2 de la 005: lo extremo llega aunque no lo haya elegido', () => {
+    const elegidos = elegirHallazgos(
+      [hallazgo('b', 'caida_vs_historial', 0.3, { categoria: 'bebidas_alcohol', nombre: 'Vino Tinto' })],
+      prefs({ categorias: ['lacteos'] }),
+    );
+    expect(elegidos.map((h) => h.productoId)).toEqual(['b']);
   });
 
   it('un termino trae algo de otra categoria', () => {

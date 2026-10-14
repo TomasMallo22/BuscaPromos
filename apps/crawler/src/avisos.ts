@@ -3,7 +3,7 @@
  * registra y envia. Ver la skill `alertas-telegram`: el unico modo en que este proyecto falla de
  * verdad es que el usuario deje de leer los avisos.
  */
-import { decidirAlerta, REGISTRY, type ReglaClave } from '@buscapromos/core';
+import { decidirAlerta, REGISTRY, seMuestra, terminoQueCoincide, type ReglaClave } from '@buscapromos/core';
 
 export interface PreferenciasAvisos {
   readonly categorias: readonly string[];
@@ -17,30 +17,6 @@ export interface PreferenciasAvisos {
 export const DESCUENTO_ANUNCIADO_MINIMO = 0.3;
 /** Un aviso que no salio en un dia ya no es noticia. */
 export const VENCE_EN_S = 24 * 3600;
-
-const normalizar = (s: string) =>
-  s
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9ñ ]+/g, ' ')
-    .trim();
-
-/**
- * ¿El producto es lo que el usuario escribio? Cada palabra del termino tiene que estar en el
- * nombre, sin tildes ni mayusculas. En palabras de 5 letras o mas se tolera la ultima ("yogurt"
- * encuentra "yogur", "aceites" encuentra "aceite"): la gente no escribe como Rappi.
- */
-export function coincideTermino(nombre: string, termino: string): boolean {
-  const palabras = normalizar(termino).split(/\s+/).filter(Boolean);
-  if (palabras.length === 0) return false;
-  const texto = normalizar(nombre);
-  return palabras.every((p) => texto.includes(p) || (p.length >= 5 && texto.includes(p.slice(0, -1))));
-}
-
-export function terminoQueCoincide(nombre: string, terminos: readonly string[]): string | null {
-  return terminos.find((t) => coincideTermino(nombre, t)) ?? null;
-}
 
 /** ¿`ahora` cae en el horario silencioso? Horas en Argentina (UTC-3 todo el año). Puede cruzar la medianoche. */
 export function enSilencio(ahora: number, desde: number, hasta: number): boolean {
@@ -60,13 +36,14 @@ export interface HallazgoCandidato {
 }
 
 /**
- * Los hallazgos que le interesan al usuario (categoria o termino), uno por producto: la regla
- * de menor ratio, y en empate la de menor `orden` del registry (capa 4 del anti-spam).
+ * Los hallazgos que le interesan al usuario (categoria o termino) y los extremos de cualquier
+ * cosa (spec 005), uno por producto: la regla de menor ratio, y en empate la de menor `orden`
+ * del registry (capa 4 del anti-spam). Sin intereses no llega nada: es opt-in (spec 004).
  */
 export function elegirHallazgos<T extends HallazgoCandidato>(candidatos: readonly T[], p: PreferenciasAvisos): T[] {
-  const interesa = (h: T) => p.categorias.includes(h.categoria) || terminoQueCoincide(h.nombre, p.terminos) !== null;
+  if (p.categorias.length === 0 && p.terminos.length === 0) return [];
   const mejor = new Map<string, T>();
-  for (const h of candidatos.filter(interesa)) {
+  for (const h of candidatos.filter((h) => seMuestra(h, p))) {
     const clave = `${h.tiendaId}|${h.productoId}`;
     const actual = mejor.get(clave);
     const ratio = (x: T) => x.ratio ?? 1;

@@ -31,6 +31,13 @@ export interface DefinicionRegla<K extends ReglaClave = ReglaClave> {
   readonly emoji: string;
   /** Desempate al deduplicar por producto: menor gana. Ver docs/05-alertas-y-notificaciones.md. */
   readonly orden: number;
+  /**
+   * Se muestra aunque el producto no este en los intereses del usuario (spec 005): 50% o mas
+   * debajo de su propio precio habitual, una oferta real de 50% o mas, o un error de precio. No
+   * lo son las que se apoyan solo en el tachado (regla de oro 1), en la gondola o en otras
+   * tiendas: son muchas por dia y con mas falsos positivos.
+   */
+  readonly extrema: boolean;
   /** `null` si no dispara. Pura: todo lo que necesita viene en la entrada. */
   readonly evaluar: (e: EntradaMotor, u: Umbrales) => Disparo | null;
 }
@@ -43,6 +50,7 @@ export const REGISTRY: { readonly [K in ReglaClave]: DefinicionRegla<K> } = {
     titulo: 'Precio absurdo',
     emoji: '🚨',
     orden: 1,
+    extrema: true,
     // $0, $1...: no hace falta mas analisis. El tachado se informa si existe, nada mas.
     evaluar: ({ producto: { precio, precioLista } }, u) =>
       u.precio_absurdo !== null && precio <= u.precio_absurdo
@@ -60,6 +68,7 @@ export const REGISTRY: { readonly [K in ReglaClave]: DefinicionRegla<K> } = {
     titulo: 'Bajó vs. su precio habitual',
     emoji: '🚨',
     orden: 2,
+    extrema: true,
     evaluar: ({ producto: { precio, precioAnterior }, habitual }, u) =>
       u.caida_vs_historial !== null && habitual && precio / habitual <= u.caida_vs_historial
         ? {
@@ -76,6 +85,7 @@ export const REGISTRY: { readonly [K in ReglaClave]: DefinicionRegla<K> } = {
     titulo: 'Descuento extremo',
     emoji: '🚨',
     orden: 3,
+    extrema: false,
     evaluar: ({ producto: { precio, precioLista } }, u) =>
       u.descuento_extremo !== null && precioLista > 0 && precio / precioLista <= u.descuento_extremo
         ? { regla: 'descuento_extremo', precioReferencia: precioLista, ratio: precio / precioLista, detalle: {} }
@@ -87,6 +97,7 @@ export const REGISTRY: { readonly [K in ReglaClave]: DefinicionRegla<K> } = {
     titulo: 'Oferta real fuerte',
     emoji: '🔥',
     orden: 4,
+    extrema: true,
     // La unica que exige `estadoOferta === 'real'`: reporta ofertas genuinas, no errores, asi
     // que un tachado alto sobre el precio de siempre no la dispara.
     evaluar: ({ producto: { precio, precioLista }, oferta }, u) =>
@@ -108,6 +119,7 @@ export const REGISTRY: { readonly [K in ReglaClave]: DefinicionRegla<K> } = {
     titulo: 'Más barato que en otras tiendas',
     emoji: '🚨',
     orden: 5,
+    extrema: false,
     evaluar: ({ producto: { precio }, mediana }, u) =>
       u.vs_otras_tiendas !== null && mediana?.precio && precio / mediana.precio <= u.vs_otras_tiendas
         ? {
@@ -124,6 +136,7 @@ export const REGISTRY: { readonly [K in ReglaClave]: DefinicionRegla<K> } = {
     titulo: 'Producto nuevo muy barato para su góndola',
     emoji: '🚨',
     orden: 6,
+    extrema: false,
     // La red para productos nuevos: corre SOLO sin historial propio, que es justo cuando las
     // demas reglas no pueden opinar.
     evaluar: ({ producto: { precio }, habitual, pasillo }, u) =>
@@ -149,6 +162,7 @@ export const REGISTRY: { readonly [K in ReglaClave]: DefinicionRegla<K> } = {
     titulo: 'Promo usuario nuevo',
     emoji: '🚨',
     orden: 7,
+    extrema: false,
     evaluar: ({ producto: { precio, precioLista, maxUnidadesPromo } }, u) =>
       u.descuento_extremo !== null && precioLista > 0 && precio / precioLista <= u.descuento_extremo
         ? {
